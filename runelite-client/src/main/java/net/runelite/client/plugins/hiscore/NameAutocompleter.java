@@ -48,7 +48,7 @@ class NameAutocompleter implements KeyListener
 	/**
 	 * Non-breaking space character.
 	 */
-	private static final String NBSP = Character.toString((char)160);
+	private static final String NBSP = Character.toString((char) 160);
 
 	/**
 	 * Character class for characters that cannot be in an RSN.
@@ -88,7 +88,7 @@ class NameAutocompleter implements KeyListener
 	@Override
 	public void keyTyped(KeyEvent e)
 	{
-		final JTextComponent input = (JTextComponent)e.getSource();
+		final JTextComponent input = (JTextComponent) e.getSource();
 		final String inputText = input.getText();
 
 		// Only autocomplete if the selection end is at the end of the text.
@@ -113,22 +113,20 @@ class NameAutocompleter implements KeyListener
 		{
 			if (isExpectedNext(input, charToInsert))
 			{
-				final int insertIndex = input.getSelectionStart();
-				SwingUtilities.invokeLater(() ->
+				try
 				{
-					try
-					{
-						// Insert the character and move the selection.
-						Document doc = input.getDocument();
-						doc.remove(insertIndex, 1);
-						doc.insertString(insertIndex, charToInsert, null);
-						input.select(insertIndex + 1, input.getSelectionEnd());
-					}
-					catch (BadLocationException ex)
-					{
-						log.warn("Could not insert character.", ex);
-					}
-				});
+					// Insert the character and move the selection.
+					final int insertIndex = input.getSelectionStart();
+					Document doc = input.getDocument();
+					doc.remove(insertIndex, 1);
+					doc.insertString(insertIndex, charToInsert, null);
+					input.select(insertIndex + 1, input.getSelectionEnd());
+				}
+				catch (BadLocationException ex)
+				{
+					log.warn("Could not insert character.", ex);
+				}
+
 				// Prevent default behavior.
 				e.consume();
 			}
@@ -145,7 +143,7 @@ class NameAutocompleter implements KeyListener
 
 	private void newAutocomplete(KeyEvent e)
 	{
-		final JTextComponent input = (JTextComponent)e.getSource();
+		final JTextComponent input = (JTextComponent) e.getSource();
 		final String inputText = input.getText();
 		final String nameStart = inputText.substring(0, input.getSelectionStart()) + e.getKeyChar();
 

@@ -24,47 +24,66 @@
  */
 package net.runelite.client.plugins.implings;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import javax.inject.Inject;
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.runelite.api.GameState;
 import net.runelite.api.NPC;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.overlay.Overlay;
-import net.runelite.client.util.QueryRunner;
+import net.runelite.client.ui.overlay.OverlayManager;
 
 /**
  * @author robin
  */
 @PluginDescriptor(
-	name = "Implings"
+	name = "Implings",
+	description = "Highlight nearby implings on the minimap and on-screen",
+	tags = {"hunter", "minimap", "overlay"}
 )
 public class ImplingsPlugin extends Plugin
 {
+	private static final int DYNAMIC_SPAWN_NATURE_DRAGON = 1618;
+	private static final int DYNAMIC_SPAWN_ECLECTIC = 1633;
+	private static final int DYNAMIC_SPAWN_BABY_ESSENCE = 1634;
+
+	@Getter
+	private Map<ImplingType, Integer> implingCounterMap = new HashMap<>();
+
 	@Getter(AccessLevel.PACKAGE)
 	private final List<NPC> implings = new ArrayList<>();
 
+	@Getter(AccessLevel.PACKAGE)
+	private Map<Integer, String> dynamicSpawns = new HashMap<>();
+
 	@Inject
 	private ImplingsOverlay overlay;
+
+	@Inject
+	private ImplingCounterOverlay implingCounterOverlay;
+
+
+	@Inject
+	private OverlayManager overlayManager;
 
 	@Inject
 	private ImplingMinimapOverlay minimapOverlay;
 
 	@Inject
 	private ImplingsConfig config;
-
-	@Inject
-	private QueryRunner queryRunner;
 
 	@Provides
 	ImplingsConfig getConfig(ConfigManager configManager)
@@ -73,9 +92,43 @@ public class ImplingsPlugin extends Plugin
 	}
 
 	@Override
-	public Collection<Overlay> getOverlays()
+	protected void startUp() throws Exception
 	{
-		return Arrays.asList(overlay, minimapOverlay);
+		dynamicSpawns.put(DYNAMIC_SPAWN_NATURE_DRAGON, "T3 Nature-Lucky Dynamic");
+		dynamicSpawns.put(DYNAMIC_SPAWN_ECLECTIC, "T2 Eclectic Dynamic");
+		dynamicSpawns.put(DYNAMIC_SPAWN_BABY_ESSENCE, "T1 Baby-Essence Dynamic");
+
+		overlayManager.add(overlay);
+		overlayManager.add(minimapOverlay);
+		overlayManager.add(implingCounterOverlay);
+	}
+
+	@Override
+	protected void shutDown() throws Exception
+	{
+		overlayManager.remove(overlay);
+		overlayManager.remove(minimapOverlay);
+		overlayManager.remove(implingCounterOverlay);
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick event)
+	{
+		implingCounterMap.clear();
+		for (NPC npc : implings)
+		{
+			Impling impling = Impling.findImpling(npc.getId());
+
+			ImplingType type = impling.getImplingType();
+			if (implingCounterMap.containsKey(type))
+			{
+				implingCounterMap.put(type, implingCounterMap.get(type) + 1);
+			}
+			else
+			{
+				implingCounterMap.put(type, 1);
+			}
+		}
 	}
 
 	@Subscribe
@@ -91,6 +144,16 @@ public class ImplingsPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING)
+		{
+			implings.clear();
+			implingCounterMap.clear();
+		}
+	}
+
+	@Subscribe
 	public void onNpcDespawned(NpcDespawned npcDespawned)
 	{
 		if (implings.isEmpty())
@@ -100,6 +163,7 @@ public class ImplingsPlugin extends Plugin
 
 		NPC npc = npcDespawned.getNpc();
 		implings.remove(npc);
+
 	}
 
 	boolean showNpc(NPC npc)
@@ -152,7 +216,12 @@ public class ImplingsPlugin extends Plugin
 			return null;
 		}
 
-		switch (impling.getImplingType())
+		return typeToColor(impling.getImplingType());
+	}
+
+	Color typeToColor(ImplingType type)
+	{
+		switch (type)
 		{
 
 			case BABY:

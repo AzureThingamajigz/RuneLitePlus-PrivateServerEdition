@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2019, Yani <yani@xenokore.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,44 +24,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package net.runelite.client.plugins.pestcontrol;
-import net.runelite.api.widgets.WidgetInfo;
 
-public enum Portal
+import lombok.Getter;
+import lombok.Setter;
+import net.runelite.api.coords.WorldPoint;
+
+@Getter
+@Setter
+class Portal
 {
-	PURPLE(WidgetInfo.PEST_CONTROL_PURPLE_SHIELD, WidgetInfo.PEST_CONTROL_PURPLE_HEALTH, WidgetInfo.PEST_CONTROL_PURPLE_ICON),
-	BLUE(WidgetInfo.PEST_CONTROL_BLUE_SHIELD, WidgetInfo.PEST_CONTROL_BLUE_HEALTH, WidgetInfo.PEST_CONTROL_BLUE_ICON),
-	YELLOW(WidgetInfo.PEST_CONTROL_YELLOW_SHIELD, WidgetInfo.PEST_CONTROL_YELLOW_HEALTH, WidgetInfo.PEST_CONTROL_YELLOW_ICON),
-	RED(WidgetInfo.PEST_CONTROL_RED_SHIELD, WidgetInfo.PEST_CONTROL_RED_HEALTH, WidgetInfo.PEST_CONTROL_RED_ICON);
+	private PortalColor color;
+	private WidgetPortal widget;
+	private WorldPoint location;
 
-	private final WidgetInfo shield;
-	private final WidgetInfo hitpoints;
-	private final WidgetInfo icon;
+	private PortalState portalState = PortalState.SHIELDED;
 
-	private Portal(WidgetInfo shield, WidgetInfo hitpoints, WidgetInfo icon)
+	public Portal(PortalColor color, WidgetPortal widget)
 	{
-		this.shield = shield;
-		this.hitpoints = hitpoints;
-		this.icon = icon;
+		this.color = color;
+		this.widget = widget;
 	}
 
-	@Override
-	public String toString()
+	public boolean isShielded()
 	{
-		return "Portal(" + name() + ")";
+		return portalState == PortalState.SHIELDED;
 	}
 
-	public WidgetInfo getShield()
+	public boolean isDead()
 	{
-		return shield;
+		return portalState == PortalState.DEAD;
 	}
 
-	public WidgetInfo getHitpoints()
+	public boolean isActive()
 	{
-		return hitpoints;
-	}
-
-	public WidgetInfo getIcon()
-	{
-		return icon;
+		return (!isShielded() && !isDead());
 	}
 }

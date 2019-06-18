@@ -29,11 +29,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.annotation.Nullable;
 import javax.swing.JPanel;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Constants;
 
-@Slf4j
 final class ClientPanel extends JPanel
 {
 	public ClientPanel(@Nullable Applet client)
@@ -57,12 +55,12 @@ final class ClientPanel extends JPanel
 
 		add(client, BorderLayout.CENTER);
 
-		// This causes the whole game frame to be redrawn each frame instead
+		// api.renderableThis causes the whole game frame to be redrawn each frame instead
 		// of only the viewport, so we can hook to MainBufferProvider#draw
 		// and draw anywhere without it leaving artifacts
 		if (client instanceof Client)
 		{
-			((Client)client).setGameDrawingMode(2);
+			((Client) client).setGameDrawingMode(2);
 		}
 	}
 }

@@ -24,15 +24,17 @@
  */
 package net.runelite.client.plugins.antidrag;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import net.runelite.api.Constants;
+import net.runelite.client.config.Alpha;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Keybind;
+import net.runelite.client.config.ModifierlessKeybind;
 
-@ConfigGroup(
-	keyName = AntiDragPlugin.CONFIG_GROUP,
-	name = "Anti Drag",
-	description = "Configuration for the anti drag plugin"
-)
+@ConfigGroup("antiDrag")
 public interface AntiDragConfig extends Config
 {
 	@ConfigItem(
@@ -43,24 +45,77 @@ public interface AntiDragConfig extends Config
 	)
 	default int dragDelay()
 	{
-		return 600 / 20; // one game tick
+		return Constants.GAME_TICK_LENGTH / Constants.CLIENT_TICK_LENGTH; // one game tick
 	}
 
 	@ConfigItem(
-		keyName = "dragDelay",
-		name = "",
-		description = ""
-	)
-	void dragDelay(int delay);
-
-	@ConfigItem(
-		keyName = "onShiftOnly",
-		name = "On Shift Only",
-		description = "Configures whether to only adjust the delay while holding shift",
+		keyName = "keybind",
+		name = "keybind",
+		description = "The keybind you want to use for antidrag",
 		position = 2
 	)
-	default boolean onShiftOnly()
+	default Keybind key()
 	{
-		return true;
+		return new ModifierlessKeybind(KeyEvent.VK_SHIFT, 0);
+	}
+
+	@ConfigItem(
+		keyName = "reqfocus",
+		name = "Reset on focus loss",
+		description = "Disable antidrag when losing focus (like alt tabbing)",
+		position = 3
+	)
+	default boolean reqfocus()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "overlay",
+		name = "Enable overlay",
+		description = "Do you really need a description?",
+		position = 4
+	)
+	default boolean overlay()
+	{
+		return false;
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "color",
+		name = "Overlay color",
+		description = "Change the overlay color, duh",
+		hidden = true,
+		unhide = "overlay",
+		position = 5
+	)
+	default Color color()
+	{
+		return new Color(255, 0, 0, 30);
+	}
+
+	@ConfigItem(
+		keyName = "changeCursor",
+		name = "Change Cursor",
+		description = "Change cursor when you have anti-drag enabled.",
+		position = 6
+	)
+	default boolean changeCursor()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "cursorStyle",
+		name = "Cursor",
+		description = "Select which cursor you wish to use",
+		hidden = true,
+		unhide = "changeCursor",
+		position = 7
+	)
+	default CustomCursor selectedCursor()
+	{
+		return CustomCursor.DRAGON_SCIMITAR;
 	}
 }

@@ -27,68 +27,215 @@ package net.runelite.api;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.image.BufferedImage;
-import net.runelite.api.annotations.VisibleForDevtools;
+import javax.annotation.Nullable;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 
+/**
+ * Represents a RuneScape actor/entity.
+ */
 public interface Actor extends Renderable
 {
+	/**
+	 * Gets the combat level of the actor.
+	 *
+	 * @return the combat level
+	 */
 	int getCombatLevel();
 
+	/**
+	 * Gets the name of the actor.
+	 *
+	 * @return the name
+	 */
 	String getName();
 
+	/**
+	 * Gets the actor being interacted with.
+	 * <p>
+	 * Examples of interaction include:
+	 * <ul>
+	 *     <li>A monster focusing an Actor to attack</li>
+	 *     <li>Targetting a player to trade</li>
+	 *     <li>Following a player</li>
+	 * </ul>
+	 *
+	 * @return the actor, null if no interaction is occurring
+	 */
 	Actor getInteracting();
 
+	/**
+	 * Gets the health ratio of the actor.
+	 * <p>
+	 * The ratio is the number of green bars in the overhead
+	 * HP display.
+	 *
+	 * @return the health ratio
+	 */
 	int getHealthRatio();
 
+	/**
+	 * Gets the health of the actor.
+	 *
+	 * @return the health
+	 */
 	int getHealth();
 
 	/**
-	 * Retrieve the server location of the actor. Note that this is typically
-	 * a couple steps ahead of where the client renders the actor.
-	 * @return Returns the server location of the actor.
+	 * Gets the server-side location of the actor.
+	 * <p>
+	 * This value is typically ahead of where the client renders and is not
+	 * affected by things such as animations.
+	 *
+	 * @return the server location
 	 */
 	WorldPoint getWorldLocation();
 
+	/**
+	 * Gets the client-side location of the actor.
+	 *
+	 * @return the client location
+	 */
 	LocalPoint getLocalLocation();
 
+	void setIdlePoseAnimation(int animation);
+
+	void setPoseAnimation(int animation);
+
+	/**
+	 * Gets the orientation of the actor.
+	 *
+	 * @return the orientation
+	 * @see net.runelite.api.coords.Angle
+	 */
 	int getOrientation();
 
+	/**
+	 * Gets the current animation the actor is performing.
+	 *
+	 * @return the animation ID
+	 * @see AnimationID
+	 */
 	int getAnimation();
 
-	@VisibleForDevtools
+	/**
+	 * Sets an animation for the actor to perform.
+	 *
+	 * @param animation the animation ID
+	 * @see AnimationID
+	 */
 	void setAnimation(int animation);
 
-	@VisibleForDevtools
+	/**
+	 * Sets the frame of the animation the actor is performing.
+	 *
+	 * @param actionFrame the animation frame
+	 */
 	void setActionFrame(int actionFrame);
 
-	int getGraphic();
+	/**
+	 * Gets the graphic that is currently on the player.
+	 *
+	 * @return the graphic of the actor
+	 * @see GraphicID
+	 */
+	int getSpotAnimation();
 
-	@VisibleForDevtools
-	void setGraphic(int graphic);
+	void setSpotAnimation(int graphic);
 
-	@VisibleForDevtools
-	void setSpotAnimFrame(int spotAnimFrame);
+	void setSpotAnimationFrame(int spotAnimFrame);
 
-	int getModelHeight();
-
+	/**
+	 * Gets the canvas area of the current tile the actor is standing on.
+	 *
+	 * @return the current tile canvas area
+	 */
 	Polygon getCanvasTilePoly();
 
+	/**
+	 * Gets the point at which text should be drawn, relative to the
+	 * current location with the given z-axis offset.
+	 *
+	 * @param graphics engine graphics
+	 * @param text the text to draw
+	 * @param zOffset the z-axis offset
+	 * @return the text drawing location
+	 */
+	@Nullable
 	Point getCanvasTextLocation(Graphics2D graphics, String text, int zOffset);
 
-	Point getCanvasImageLocation(Graphics2D graphics, BufferedImage image, int zOffset);
+	/**
+	 * Gets the point at which an image should be drawn, relative to the
+	 * current location with the given z-axis offset.
+	 *
+	 * @param image the image to draw
+	 * @param zOffset the z-axis offset
+	 * @return the image drawing location
+	 */
+	Point getCanvasImageLocation(BufferedImage image, int zOffset);
 
-	Point getCanvasSpriteLocation(Graphics2D graphics, SpritePixels sprite, int zOffset);
 
+	/**
+	 * Gets the point at which a sprite should be drawn, relative to the
+	 * current location with the given z-axis offset.
+	 *
+	 * @param sprite the sprite to draw
+	 * @param zOffset the z-axis offset
+	 * @return the sprite drawing location
+	 */
+	Point getCanvasSpriteLocation(Sprite sprite, int zOffset);
+
+	/**
+	 * Gets a point on the canvas of where this actors mini-map indicator
+	 * should appear.
+	 *
+	 * @return mini-map location on canvas
+	 */
 	Point getMinimapLocation();
 
 	/**
-	 * Returns the logical height of the actor's model. This is roughly where the health bar is drawn.
+	 * Gets the logical height of the actors model.
+	 * <p>
+	 * This z-axis offset is roughly where the health bar of the actor
+	 * is drawn.
+	 *
+	 * @return the logical height
 	 */
 	int getLogicalHeight();
 
+	/**
+	 * Gets the convex hull of the actors model.
+	 *
+	 * @return the convex hull
+	 * @see net.runelite.api.model.Jarvis
+	 */
 	Polygon getConvexHull();
 
+	/**
+	 * Gets the world area that the actor occupies.
+	 *
+	 * @return the world area
+	 */
 	WorldArea getWorldArea();
+
+	/**
+	 * Gets the overhead text that is displayed above the actor
+	 *
+	 * @return the overhead text
+	 */
+	String getOverheadText();
+
+	/**
+	 * Sets the overhead text that is displayed above the actor
+	 *
+	 * @param overheadText the overhead text
+	 */
+	void setOverheadText(String overheadText);
+
+	/**
+	 * Used by the "Tick Counter Plugin
+	 */
+	int getActionFrame();
+	int getActionFrameCycle();
 }

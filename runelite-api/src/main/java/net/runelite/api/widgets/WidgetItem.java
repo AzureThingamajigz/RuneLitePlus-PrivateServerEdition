@@ -24,50 +24,52 @@
  */
 package net.runelite.api.widgets;
 
-import java.awt.Rectangle;
 import net.runelite.api.Point;
+import java.awt.Rectangle;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
 
+/**
+ * An item that is being represented in a {@link Widget}.
+ */
+@AllArgsConstructor
+@ToString
+@Getter
 public class WidgetItem
 {
+	/**
+	 * The ID of the item represented.
+	 *
+	 * @see net.runelite.api.ItemID
+	 */
 	private final int id;
+	/**
+	 * The quantity of the represented item.
+	 */
 	private final int quantity;
+	/**
+	 * The index position of this WidgetItem inside its parents
+	 * WidgetItem array.
+	 *
+	 * @see Widget#getWidgetItems()
+	 */
 	private final int index;
+	/**
+	 * The area where the widget is drawn on the canvas.
+	 */
 	private final Rectangle canvasBounds;
+	/**
+	 * The widget which contains this item.
+	 */
+	private final Widget widget;
 
-	public WidgetItem(int id, int quantity, int index, Rectangle canvasBounds)
-	{
-		this.id = id;
-		this.quantity = quantity;
-		this.index = index;
-		this.canvasBounds = canvasBounds;
-	}
-
-	@Override
-	public String toString()
-	{
-		return "WidgetItem{" + "id=" + id + ", quantity=" + quantity + ", index=" + index + ", canvasBounds=" + canvasBounds + '}';
-	}
-
-	public int getId()
-	{
-		return id;
-	}
-
-	public int getQuantity()
-	{
-		return quantity;
-	}
-
-	public int getIndex()
-	{
-		return index;
-	}
-
-	public Rectangle getCanvasBounds()
-	{
-		return canvasBounds;
-	}
-
+	/**
+	 * Gets the upper-left coordinate of where the widget is being drawn
+	 * on the canvas.
+	 *
+	 * @return the upper-left coordinate of where this widget is drawn
+	 */
 	public Point getCanvasLocation()
 	{
 		return new Point((int) canvasBounds.getX(), (int) canvasBounds.getY());

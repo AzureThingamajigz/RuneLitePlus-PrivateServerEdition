@@ -24,13 +24,11 @@
  */
 package net.runelite.client.plugins.cannon;
 
-import com.google.common.eventbus.Subscribe;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
 import java.awt.Color;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +38,7 @@ import net.runelite.api.AnimationID;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
+import net.runelite.api.InventoryID;
 import net.runelite.api.ItemID;
 import static net.runelite.api.ObjectID.CANNON_BASE;
 import net.runelite.api.Player;
@@ -51,24 +50,32 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.Notifier;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
-import net.runelite.client.ui.overlay.Overlay;
+import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.util.ItemUtil;
 
 @PluginDescriptor(
-	name = "Cannon"
+	name = "Cannon",
+	description = "Show information about cannon placement and/or amount of cannonballs",
+	tags = {"combat", "notifications", "ranged", "overlay"}
 )
 public class CannonPlugin extends Plugin
 {
 	private static final Pattern NUMBER_PATTERN = Pattern.compile("([0-9]+)");
 	private static final int MAX_CBALLS = 30;
+	private static final ImmutableSet<Integer> CANNON_PARTS = ImmutableSet.of(
+		ItemID.CANNON_BASE, ItemID.CANNON_STAND, ItemID.CANNON_BARRELS, ItemID.CANNON_FURNACE
+	);
 
 	private CannonCounter counter;
 	private boolean skipProjectileCheckThisTick;
@@ -98,6 +105,9 @@ public class CannonPlugin extends Plugin
 	private Notifier notifier;
 
 	@Inject
+	private OverlayManager overlayManager;
+
+	@Inject
 	private CannonOverlay cannonOverlay;
 
 	@Inject
@@ -112,6 +122,8 @@ public class CannonPlugin extends Plugin
 	@Inject
 	private ClientThread clientThread;
 
+	private boolean lock;
+
 	@Provides
 	CannonConfig provideConfig(ConfigManager configManager)
 	{
@@ -119,18 +131,37 @@ public class CannonPlugin extends Plugin
 	}
 
 	@Override
-	public Collection<Overlay> getOverlays()
+	protected void startUp() throws Exception
 	{
-		return Arrays.asList(cannonOverlay, cannonSpotOverlay);
+		overlayManager.add(cannonOverlay);
+		overlayManager.add(cannonSpotOverlay);
+		lock = false;
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
+		cannonSpotOverlay.setHidden(true);
+		overlayManager.remove(cannonOverlay);
+		overlayManager.remove(cannonSpotOverlay);
 		cannonPlaced = false;
 		cannonPosition = null;
+		lock = false;
 		cballsLeft = 0;
 		removeCounter();
+		skipProjectileCheckThisTick = false;
+		spotPoints.clear();
+	}
+
+	@Subscribe
+	public void onItemContainerChanged(ItemContainerChanged event)
+	{
+		if (event.getItemContainer() != client.getItemContainer(InventoryID.INVENTORY))
+		{
+			return;
+		}
+
+		cannonSpotOverlay.setHidden(!ItemUtil.containsAllItemIds(event.getItemContainer().getItems(), CANNON_PARTS));
 	}
 
 	@Subscribe
@@ -146,7 +177,7 @@ public class CannonPlugin extends Plugin
 			{
 				if (cannonPlaced)
 				{
-					clientThread.invokeLater(this::addCounter);
+					clientThread.invoke(this::addCounter);
 				}
 			}
 		}
@@ -221,7 +252,7 @@ public class CannonPlugin extends Plugin
 	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
-		if (event.getType() != ChatMessageType.FILTERED && event.getType() != ChatMessageType.SERVER)
+		if (event.getType() != ChatMessageType.SPAM && event.getType() != ChatMessageType.GAMEMESSAGE)
 		{
 			return;
 		}
@@ -233,7 +264,8 @@ public class CannonPlugin extends Plugin
 			cballsLeft = 0;
 		}
 
-		if (event.getMessage().contains("You pick up the cannon"))
+		if (event.getMessage().contains("You pick up the cannon")
+			|| event.getMessage().contains("Your cannon has decayed. Speak to Nulodion to get a new one!"))
 		{
 			cannonPlaced = false;
 			cballsLeft = 0;
@@ -311,11 +343,20 @@ public class CannonPlugin extends Plugin
 	{
 		if (cballsLeft > 15)
 		{
+			lock = false;
 			return Color.green;
 		}
 		else if (cballsLeft > 5)
 		{
 			return Color.orange;
+		}
+		else if (cballsLeft <= config.ammoAmount())
+		{
+			if (config.notifyAmmoLeft() && !lock)
+			{
+				notifier.notify("Your cannon has " + config.ammoAmount() + " balls left!");
+				lock = true;
+			}
 		}
 
 		return Color.red;

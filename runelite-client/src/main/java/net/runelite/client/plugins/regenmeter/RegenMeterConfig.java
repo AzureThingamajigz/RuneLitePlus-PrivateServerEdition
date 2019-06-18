@@ -28,11 +28,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-	keyName = "regenmeter",
-	name = "Regeneration Meter",
-	description = "Configuration for the data orb regeneration meters"
-)
+@ConfigGroup("regenmeter")
 public interface RegenMeterConfig extends Config
 {
 	@ConfigItem(
@@ -60,5 +56,15 @@ public interface RegenMeterConfig extends Config
 	default boolean showWhenNoChange()
 	{
 		return false;
+	}
+
+	@ConfigItem(
+		keyName = "notifyBeforeHpRegenDuration",
+		name = "Hitpoint Regen Notification (seconds)",
+		description = "Notify approximately when your next hitpoint is about to regen. A value of 0 will disable notification."
+	)
+	default int getNotifyBeforeHpRegenSeconds()
+	{
+		return 0;
 	}
 }

@@ -28,6 +28,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.Inject;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
@@ -36,11 +37,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.SpritePixels;
+import net.runelite.api.Sprite;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.util.ImageUtil;
 
+@Slf4j
 @Singleton
 public class SpriteManager
 {
@@ -71,8 +75,8 @@ public class SpriteManager
 			return cached;
 		}
 
-		SpritePixels sp = client.getSprite(client.getIndexSprites(), archive, file);
-		BufferedImage img = sp.toBufferedImage();
+		Sprite[] sp = client.getSprites(client.getIndexSprites(), archive, 0);
+		BufferedImage img = sp[file].toBufferedImage();
 
 		cache.put(key, img);
 		return img;
@@ -87,7 +91,7 @@ public class SpriteManager
 			return;
 		}
 
-		clientThread.invokeLater(() ->
+		clientThread.invoke(() ->
 		{
 			BufferedImage img = getSprite(archive, file);
 			if (img == null)
@@ -125,6 +129,38 @@ public class SpriteManager
 			{
 				c.setIcon(new ImageIcon(img));
 			});
+		});
+	}
+
+	public void addSpriteOverrides(SpriteOverride[] add)
+	{
+		if (add.length <= 0)
+		{
+			return;
+		}
+
+		clientThread.invokeLater(() ->
+		{
+			Map<Integer, Sprite> overrides = client.getSpriteOverrides();
+			Class<?> owner = add[0].getClass();
+			for (SpriteOverride o : add)
+			{
+				BufferedImage image = ImageUtil.getResourceStreamFromClass(owner, o.getFileName());
+				Sprite sp = ImageUtil.getImageSprite(image, client);
+				overrides.put(o.getSpriteId(), sp);
+			}
+		});
+	}
+
+	public void removeSpriteOverrides(SpriteOverride[] remove)
+	{
+		clientThread.invokeLater(() ->
+		{
+			Map<Integer, Sprite> overrides = client.getSpriteOverrides();
+			for (SpriteOverride o : remove)
+			{
+				overrides.remove(o.getSpriteId());
+			}
 		});
 	}
 }

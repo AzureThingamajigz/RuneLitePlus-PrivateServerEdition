@@ -24,9 +24,23 @@
  */
 package net.runelite.client.plugins.runecraft;
 
+import com.google.inject.Inject;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import net.runelite.api.Client;
+import net.runelite.api.DecorativeObject;
+import net.runelite.api.NPC;
+import net.runelite.api.Perspective;
+import net.runelite.api.Point;
+import net.runelite.client.game.ItemManager;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.AIR_RIFT;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.BLOOD_RIFT;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.BODY_RIFT;
@@ -40,21 +54,6 @@ import static net.runelite.client.plugins.runecraft.AbyssRifts.MIND_RIFT;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.NATURE_RIFT;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.SOUL_RIFT;
 import static net.runelite.client.plugins.runecraft.AbyssRifts.WATER_RIFT;
-import com.google.inject.Inject;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import net.runelite.api.Client;
-import net.runelite.api.DecorativeObject;
-import net.runelite.api.NPC;
-import net.runelite.api.Perspective;
-import net.runelite.api.Point;
-import net.runelite.api.coords.LocalPoint;
-import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -62,7 +61,6 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 
 class AbyssOverlay extends Overlay
 {
-	private static final int MAX_DISTANCE = 2350;
 	private static final Dimension IMAGE_SIZE = new Dimension(15, 14);
 
 	private final Set<AbyssRifts> rifts = new HashSet<>();
@@ -90,14 +88,9 @@ class AbyssOverlay extends Overlay
 	{
 		if (config.showRifts())
 		{
-			LocalPoint localLocation = client.getLocalPlayer().getLocalLocation();
 			for (DecorativeObject object : plugin.getAbyssObjects())
 			{
-				LocalPoint location = object.getLocalLocation();
-				if (localLocation.distanceTo(location) <= MAX_DISTANCE)
-				{
-					renderRifts(graphics, object);
-				}
+				renderRifts(graphics, object);
 			}
 		}
 

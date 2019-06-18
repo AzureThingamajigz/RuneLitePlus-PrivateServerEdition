@@ -24,8 +24,6 @@
  */
 package net.runelite.client.plugins.fps;
 
-import java.awt.image.BufferedImage;
-import java.util.function.Consumer;
 import javax.inject.Inject;
 import net.runelite.api.events.FocusChanged;
 
@@ -38,11 +36,11 @@ import net.runelite.api.events.FocusChanged;
  * For low powered computers, the RS client is often throttled by the hardware or OS and draws at 25-30 fps.
  * The nano timer is not used in this scenario.
  * Instead to catch up the RS client runs several cycles before drawing, thus maintaining 50 cycles / second.
- *
+ * <p>
  * Enforcing FPS in the draw code does not impact the client engine's ability to run including its audio,
  * even when forced to 1 FPS with this plugin.
  */
-public class FpsDrawListener implements Consumer<BufferedImage>
+public class FpsDrawListener implements Runnable
 {
 	private static final int SAMPLE_SIZE = 4;
 
@@ -90,7 +88,7 @@ public class FpsDrawListener implements Consumer<BufferedImage>
 	}
 
 	@Override
-	public void accept(BufferedImage bufferedImage)
+	public void run()
 	{
 
 		if (!isEnforced())

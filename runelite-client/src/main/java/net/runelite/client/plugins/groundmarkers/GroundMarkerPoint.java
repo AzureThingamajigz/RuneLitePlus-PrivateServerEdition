@@ -35,4 +35,22 @@ public class GroundMarkerPoint
 	private int regionX;
 	private int regionY;
 	private int z;
+	private int group;
+
+	@Override
+	public String toString()
+	{
+		return "GroundMarkerPoint(regionId=" + regionId + ",regionX=" + regionX + ",=regionY" + regionY + ",z=" + z + ")";
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (!(o instanceof GroundMarkerPoint))
+		{
+			return false;
+		}
+
+		return o.toString().equals(this.toString());
+	}
 }

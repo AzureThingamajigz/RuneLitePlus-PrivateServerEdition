@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Cameron <https://github.com/noremac201>
+ * Copyright (c) 2018, https://runelitepl.us
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@ package net.runelite.client.plugins.barbarianassault;
 import lombok.Getter;
 import net.runelite.api.widgets.WidgetInfo;
 
-public enum Role
+enum Role
 {
 	ATTACKER(WidgetInfo.BA_ATK_LISTEN_TEXT, WidgetInfo.BA_ATK_CALL_TEXT, WidgetInfo.BA_ATK_ROLE_TEXT, WidgetInfo.BA_ATK_ROLE_SPRITE),
 	DEFENDER(WidgetInfo.BA_DEF_LISTEN_TEXT, WidgetInfo.BA_DEF_CALL_TEXT, WidgetInfo.BA_DEF_ROLE_TEXT, WidgetInfo.BA_DEF_ROLE_SPRITE),
@@ -36,10 +36,13 @@ public enum Role
 
 	@Getter
 	private final WidgetInfo listen;
+
 	@Getter
 	private final WidgetInfo call;
+
 	@Getter
 	private final WidgetInfo roleText;
+
 	@Getter
 	private final WidgetInfo roleSprite;
 

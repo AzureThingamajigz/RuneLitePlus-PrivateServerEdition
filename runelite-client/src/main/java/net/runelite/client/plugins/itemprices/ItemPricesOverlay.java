@@ -24,13 +24,14 @@
  */
 package net.runelite.client.plugins.itemprices;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
-import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemDefinition;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
 import net.runelite.api.MenuAction;
@@ -42,14 +43,11 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
+import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.StackFormatter;
-import net.runelite.http.api.item.ItemPrice;
 
 class ItemPricesOverlay extends Overlay
 {
-	// Used when getting High Alchemy value - multiplied by general store price.
-	private static final float HIGH_ALCHEMY_CONSTANT = 0.6f;
-
 	private static final int INVENTORY_ITEM_WIDGETID = WidgetInfo.INVENTORY.getPackedId();
 	private static final int BANK_INVENTORY_ITEM_WIDGETID = WidgetInfo.BANK_INVENTORY_ITEMS_CONTAINER.getPackedId();
 	private static final int BANK_ITEM_WIDGETID = WidgetInfo.BANK_ITEM_CONTAINER.getPackedId();
@@ -117,7 +115,7 @@ class ItemPricesOverlay extends Overlay
 						final String text = makeValueTooltip(menuEntry);
 						if (text != null)
 						{
-							tooltipManager.add(new Tooltip("<col=eeeeee>" + text));
+							tooltipManager.add(new Tooltip(ColorUtil.prependColorTag(text, new Color(238, 238, 238))));
 						}
 						break;
 				}
@@ -180,11 +178,11 @@ class ItemPricesOverlay extends Overlay
 			return StackFormatter.formatNumber(qty * 1000) + " gp";
 		}
 
-		ItemComposition itemDef = itemManager.getItemComposition(id);
+		ItemDefinition itemDef = itemManager.getItemDefinition(id);
 		if (itemDef.getNote() != -1)
 		{
 			id = itemDef.getLinkedNoteId();
-			itemDef = itemManager.getItemComposition(id);
+			itemDef = itemManager.getItemDefinition(id);
 		}
 
 		// Only check prices for things with store prices
@@ -195,29 +193,30 @@ class ItemPricesOverlay extends Overlay
 
 		int gePrice = 0;
 		int haPrice = 0;
+		int haProfit = 0;
 
 		if (config.showGEPrice())
 		{
-			final ItemPrice price = itemManager.getItemPriceAsync(id);
-			if (price != null)
-			{
-				gePrice = price.getPrice();
-			}
+			gePrice = itemManager.getItemPrice(id);
 		}
 		if (config.showHAValue())
 		{
-			haPrice = Math.round(itemDef.getPrice() * HIGH_ALCHEMY_CONSTANT);
+			haPrice = itemManager.getAlchValue(id);
+		}
+		if (gePrice > 0 && haPrice > 0 && config.showAlchProfit())
+		{
+			haProfit = calculateHAProfit(haPrice, gePrice);
 		}
 
 		if (gePrice > 0 || haPrice > 0)
 		{
-			return stackValueText(qty, gePrice, haPrice);
+			return stackValueText(qty, gePrice, haPrice, haProfit);
 		}
 
 		return null;
 	}
 
-	private String stackValueText(int qty, int gePrice, int haValue)
+	private String stackValueText(int qty, int gePrice, int haValue, int haProfit)
 	{
 		if (gePrice > 0)
 		{
@@ -249,9 +248,36 @@ class ItemPricesOverlay extends Overlay
 			}
 		}
 
+		if (haProfit != 0)
+		{
+			Color haColor = haProfitColor(haProfit);
+
+			itemStringBuilder.append("</br>");
+			itemStringBuilder.append("HA Profit: ")
+				.append(ColorUtil.wrapWithColorTag(String.valueOf(haProfit * qty), haColor))
+				.append(" gp");
+			if (config.showEA() && qty > 1)
+			{
+				itemStringBuilder.append(" (")
+					.append(ColorUtil.wrapWithColorTag(String.valueOf(haProfit), haColor))
+					.append(" ea)");
+			}
+		}
+
 		// Build string and reset builder
 		final String text = itemStringBuilder.toString();
 		itemStringBuilder.setLength(0);
 		return text;
+	}
+
+	private int calculateHAProfit(int haPrice, int gePrice)
+	{
+		int natureRunePrice = itemManager.getItemPrice(ItemID.NATURE_RUNE);
+		return haPrice - gePrice - natureRunePrice;
+	}
+
+	private static Color haProfitColor(int haProfit)
+	{
+		return haProfit >= 0 ? Color.GREEN : Color.RED;
 	}
 }

@@ -27,12 +27,9 @@ package net.runelite.client.plugins.fps;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 
-@ConfigGroup(
-	keyName = FpsPlugin.CONFIG_GROUP_KEY,
-	name = "FPS Control",
-	description = "Lets you control what your game frame rate is, often helps keep CPU down too"
-)
+@ConfigGroup(FpsPlugin.CONFIG_GROUP_KEY)
 public interface FpsConfig extends Config
 {
 	@ConfigItem(
@@ -46,6 +43,10 @@ public interface FpsConfig extends Config
 		return FpsLimitMode.NEVER;
 	}
 
+	@Range(
+		min = 1,
+		max = 50
+	)
 	@ConfigItem(
 		keyName = "maxFps",
 		name = "FPS target",
@@ -66,5 +67,16 @@ public interface FpsConfig extends Config
 	default boolean drawFps()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "drawPing",
+		name = "Draw ping indicator",
+		description = "Show a number in the corner for the current ping",
+		position = 3
+	)
+	default boolean drawPing()
+	{
+		return false;
 	}
 }

@@ -24,35 +24,36 @@
  */
 package net.runelite.mixins;
 
-import java.awt.Polygon;
-import java.awt.geom.Area;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
 import net.runelite.api.coords.Angle;
+import net.runelite.api.coords.LocalPoint;
+import java.awt.Polygon;
+import java.awt.geom.Area;
 import net.runelite.api.mixins.Inject;
 import net.runelite.api.mixins.Mixin;
 import net.runelite.api.mixins.Shadow;
 import net.runelite.rs.api.RSClient;
+import net.runelite.rs.api.RSEntity;
 import net.runelite.rs.api.RSGameObject;
 import net.runelite.rs.api.RSModel;
-import net.runelite.rs.api.RSRenderable;
 
 @Mixin(RSGameObject.class)
 public abstract class RSGameObjectMixin implements RSGameObject
 {
-	@Shadow("clientInstance")
+	@Shadow("client")
 	private static RSClient client;
 
 	@Inject
 	@Override
-	public Point getRegionMinLocation()
+	public Point getSceneMinLocation()
 	{
 		return new Point(getRelativeX(), getRelativeY());
 	}
 
 	@Inject
 	@Override
-	public Point getRegionMaxLocation()
+	public Point getSceneMaxLocation()
 	{
 		return new Point(getOffsetX(), getOffsetY());
 	}
@@ -60,7 +61,7 @@ public abstract class RSGameObjectMixin implements RSGameObject
 	@Inject
 	private RSModel getModel()
 	{
-		RSRenderable renderable = getRenderable();
+		RSEntity renderable = getRenderable();
 		if (renderable == null)
 		{
 			return null;
@@ -80,7 +81,7 @@ public abstract class RSGameObjectMixin implements RSGameObject
 	@Override
 	public Area getClickbox()
 	{
-		return Perspective.getClickbox(client, getModel(), getRsOrientation(), getX(), getY());
+		return Perspective.getClickbox(client, getModel(), getRsOrientation(), getLocalLocation());
 	}
 
 	@Inject
@@ -94,7 +95,8 @@ public abstract class RSGameObjectMixin implements RSGameObject
 			return null;
 		}
 
-		return model.getConvexHull(getX(), getY(), getRsOrientation());
+		int tileHeight = Perspective.getTileHeight(client, new LocalPoint(getX(), getY()), client.getPlane());
+		return model.getConvexHull(getX(), getY(), getRsOrientation(), tileHeight);
 	}
 
 	@Override

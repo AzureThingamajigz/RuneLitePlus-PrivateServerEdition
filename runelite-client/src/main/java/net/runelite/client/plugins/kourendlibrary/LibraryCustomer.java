@@ -27,14 +27,13 @@ package net.runelite.client.plugins.kourendlibrary;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
-
 import net.runelite.api.NpcID;
 
-public enum LibraryCustomer
+enum LibraryCustomer
 {
 	VILLIA(NpcID.VILLIA, "Villia"),
 	PROFESSOR_GRACKLEBONE(NpcID.PROFESSOR_GRACKLEBONE, "Prof. Gracklebone"),
-	Sam(NpcID.SAM_7049, "Sam");
+	SAM(NpcID.SAM_7049, "Sam");
 
 	@Getter
 	private final int id;
@@ -50,7 +49,7 @@ public enum LibraryCustomer
 		this.name = name;
 	}
 
-	public static LibraryCustomer getById(int id)
+	static LibraryCustomer getById(int id)
 	{
 		return byId.get(id);
 	}

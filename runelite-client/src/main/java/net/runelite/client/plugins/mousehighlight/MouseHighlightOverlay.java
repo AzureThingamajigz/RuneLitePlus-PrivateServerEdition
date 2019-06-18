@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.VarClientInt;
 import net.runelite.api.widgets.Widget;
@@ -72,6 +73,12 @@ class MouseHighlightOverlay extends Overlay
 		MenuEntry menuEntry = menuEntries[last];
 		String target = menuEntry.getTarget();
 		String option = menuEntry.getOption();
+		int type = menuEntry.getType();
+
+		if (shouldNotRenderMenuAction(type))
+		{
+			return null;
+		}
 
 		if (Strings.isNullOrEmpty(option))
 		{
@@ -118,7 +125,30 @@ class MouseHighlightOverlay extends Overlay
 			}
 		}
 
+		if (widget == null && !config.mainTooltip())
+		{
+			return null;
+		}
+
+		// If this varc is set, a tooltip is already being displayed
+		int tooltipDisplayed = client.getVar(VarClientInt.TOOLTIP_VISIBLE);
+		if (tooltipDisplayed == 1)
+		{
+			return null;
+		}
+
 		tooltipManager.addFront(new Tooltip(option + (Strings.isNullOrEmpty(target) ? "" : " " + target)));
 		return null;
+	}
+
+	private boolean shouldNotRenderMenuAction(int type)
+	{
+		return type == MenuAction.RUNELITE_OVERLAY.getId()
+				|| (!config.isRightClickTooltipEnabled() && isMenuActionRightClickOnly(type));
+	}
+
+	private boolean isMenuActionRightClickOnly(int type)
+	{
+		return type == MenuAction.EXAMINE_ITEM_BANK_EQ.getId();
 	}
 }

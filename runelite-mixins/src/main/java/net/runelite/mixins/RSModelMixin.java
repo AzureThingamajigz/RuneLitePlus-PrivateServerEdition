@@ -27,25 +27,204 @@ package net.runelite.mixins;
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
+import net.runelite.api.Model;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
+import net.runelite.api.mixins.Copy;
 import net.runelite.api.mixins.Inject;
+import net.runelite.api.mixins.MethodHook;
 import net.runelite.api.mixins.Mixin;
+import net.runelite.api.mixins.Replace;
 import net.runelite.api.mixins.Shadow;
 import net.runelite.api.model.Jarvis;
 import net.runelite.api.model.Triangle;
 import net.runelite.api.model.Vertex;
+import net.runelite.rs.api.RSAnimation;
 import net.runelite.rs.api.RSClient;
-import net.runelite.rs.api.RSFrame;
-import net.runelite.rs.api.RSFrameMap;
 import net.runelite.rs.api.RSFrames;
 import net.runelite.rs.api.RSModel;
+import net.runelite.rs.api.RSSkeleton;
 
 @Mixin(RSModel.class)
 public abstract class RSModelMixin implements RSModel
 {
-	@Shadow("clientInstance")
+	@Shadow("client")
 	private static RSClient client;
+
+	@Inject
+	private int rl$sceneId;
+
+
+	@Inject
+	private boolean isClickable;
+
+	@Inject
+	private int rl$bufferOffset;
+
+	@Inject
+	private int rl$uvBufferOffset;
+
+	@Inject
+	private float[][] rl$faceTextureUCoordinates;
+
+	@Inject
+	private float[][] rl$faceTextureVCoordinates;
+
+	@Inject
+	public void rl$init(Model[] models, int length)
+	{
+		rl$init((RSModel[]) models, length);
+	}
+
+	@Inject
+	public boolean isClickable()
+	{
+		return isClickable;
+	}
+
+	@Inject
+	public void interpolateFrames(RSFrames frames, int frameId, RSFrames nextFrames, int nextFrameId, int interval, int intervalCount)
+	{
+		if (getVertexGroups() != null)
+		{
+			if (frameId != -1)
+			{
+				RSAnimation frame = frames.getFrames()[frameId];
+				RSSkeleton skin = frame.getSkin();
+				RSAnimation nextFrame = null;
+				if (nextFrames != null)
+				{
+					nextFrame = nextFrames.getFrames()[nextFrameId];
+					if (nextFrame.getSkin() != skin)
+					{
+						nextFrame = null;
+					}
+				}
+
+				client.setAnimOffsetX(0);
+				client.setAnimOffsetY(0);
+				client.setAnimOffsetZ(0);
+
+				interpolateFrames(skin, frame, nextFrame, interval, intervalCount);
+				resetBounds();
+			}
+		}
+	}
+
+	@Override
+	@Inject
+	public Polygon getConvexHull(int localX, int localY, int orientation, int tileHeight)
+	{
+		List<Vertex> vertices = getVertices();
+
+		// rotate vertices
+		for (int i = 0; i < vertices.size(); ++i)
+		{
+			Vertex v = vertices.get(i);
+			vertices.set(i, v.rotate(orientation));
+		}
+
+		List<Point> points = new ArrayList<Point>();
+
+		for (Vertex v : vertices)
+		{
+			// Compute canvas location of vertex
+			Point p = Perspective.localToCanvas(client,
+				localX - v.getX(),
+				localY - v.getZ(),
+				tileHeight + v.getY());
+			if (p != null)
+			{
+				points.add(p);
+			}
+		}
+
+		// Run Jarvis march algorithm
+		points = Jarvis.convexHull(points);
+		if (points == null)
+		{
+			return null;
+		}
+
+		// Convert to a polygon
+		Polygon p = new Polygon();
+		for (Point point : points)
+		{
+			p.addPoint(point.getX(), point.getY());
+		}
+
+		return p;
+	}
+
+	@Inject
+	@Override
+	public float[][] getFaceTextureUCoordinates()
+	{
+		return rl$faceTextureUCoordinates;
+	}
+
+	@Inject
+	@Override
+	public void setFaceTextureUCoordinates(float[][] faceTextureUCoordinates)
+	{
+		this.rl$faceTextureUCoordinates = faceTextureUCoordinates;
+	}
+
+	@Inject
+	@Override
+	public float[][] getFaceTextureVCoordinates()
+	{
+		return rl$faceTextureVCoordinates;
+	}
+
+	@Inject
+	@Override
+	public void setFaceTextureVCoordinates(float[][] faceTextureVCoordinates)
+	{
+		this.rl$faceTextureVCoordinates = faceTextureVCoordinates;
+	}
+
+	@MethodHook(value = "<init>", end = true)
+	@Inject
+	public void rl$init(RSModel[] models, int length)
+	{
+		int count = 0;
+		for (int i = 0; i < length; ++i)
+		{
+			RSModel model = models[i];
+			if (model != null)
+			{
+				count += model.getTrianglesCount();
+			}
+		}
+
+		float[][] u = new float[count][];
+		float[][] v = new float[count][];
+		int idx = 0;
+
+		for (int i = 0; i < length; ++i)
+		{
+			RSModel model = models[i];
+			if (model != null)
+			{
+				float[][] modelU = model.getFaceTextureUCoordinates();
+				float[][] modelV = model.getFaceTextureVCoordinates();
+
+				for (int j = 0; j < model.getTrianglesCount(); ++j)
+				{
+					if (modelU != null && modelV != null)
+					{
+						u[idx] = modelU[j];
+						v[idx] = modelV[j];
+					}
+					++idx;
+				}
+			}
+		}
+
+		setFaceTextureUCoordinates(u);
+		setFaceTextureVCoordinates(v);
+	}
 
 	@Override
 	@Inject
@@ -55,7 +234,7 @@ public abstract class RSModelMixin implements RSModel
 		int[] verticesY = getVerticesY();
 		int[] verticesZ = getVerticesZ();
 
-		List<Vertex> vertices = new ArrayList<Vertex>();
+		List<Vertex> vertices = new ArrayList<Vertex>(getVerticesCount());
 
 		for (int i = 0; i < getVerticesCount(); ++i)
 		{
@@ -99,37 +278,76 @@ public abstract class RSModelMixin implements RSModel
 	}
 
 	@Inject
-	public void interpolateFrames(RSFrames frames, int frameId, RSFrames nextFrames, int nextFrameId, int interval,
-										int intervalCount)
+	@Override
+	public int getSceneId()
 	{
-		if (getVertexGroups() != null)
-		{
-			if (frameId != -1)
-			{
-				RSFrame frame = frames.getFrames()[frameId];
-				RSFrameMap skin = frame.getSkin();
-				RSFrame nextFrame = null;
-				if (nextFrames != null)
-				{
-					nextFrame = nextFrames.getFrames()[nextFrameId];
-					if (nextFrame.getSkin() != skin)
-					{
-						nextFrame = null;
-					}
-				}
-
-				client.setAnimOffsetX(0);
-				client.setAnimOffsetY(0);
-				client.setAnimOffsetZ(0);
-
-				interpolateFrames(skin, frame, nextFrame, interval, intervalCount);
-				resetBounds();
-			}
-		}
+		return rl$sceneId;
 	}
 
 	@Inject
-	public void interpolateFrames(RSFrameMap skin, RSFrame frame, RSFrame nextFrame, int interval, int intervalCount)
+	@Override
+	public void setSceneId(int sceneId)
+	{
+		this.rl$sceneId = sceneId;
+	}
+
+	@Inject
+	@Override
+	public int getBufferOffset()
+	{
+		return rl$bufferOffset;
+	}
+
+	@Inject
+	@Override
+	public void setBufferOffset(int bufferOffset)
+	{
+		rl$bufferOffset = bufferOffset;
+	}
+
+	@Inject
+	@Override
+	public int getUvBufferOffset()
+	{
+		return rl$uvBufferOffset;
+	}
+
+	@Inject
+	@Override
+	public void setUvBufferOffset(int bufferOffset)
+	{
+		rl$uvBufferOffset = bufferOffset;
+	}
+
+	@Copy("contourGround")
+	public abstract Model rs$contourGround(int[][] tileHeights, int packedX, int height, int packedY, boolean copy, int contouredGround);
+
+	@Replace("contourGround")
+	public Model rl$contourGround(int[][] tileHeights, int packedX, int height, int packedY, boolean copy, int contouredGround)
+	{
+		// With contouredGround >= 0 lighted models are countoured, so we need to copy uvs
+		Model model = rs$contourGround(tileHeights, packedX, height, packedY, copy, contouredGround);
+		if (model != null && model != this)
+		{
+			RSModel rsModel = (RSModel) model;
+			rsModel.setFaceTextureUCoordinates(rl$faceTextureUCoordinates);
+			rsModel.setFaceTextureVCoordinates(rl$faceTextureVCoordinates);
+		}
+		return model;
+	}
+
+	@MethodHook("buildSharedModel")
+	@Inject
+	public void rl$buildSharedModel(boolean refTransparencies, Model sharedModel, byte[] transparencyBuffer)
+	{
+		// Animated models are usually a shared Model instance that is global
+		RSModel rsModel = (RSModel) sharedModel;
+		rsModel.setFaceTextureUCoordinates(rl$faceTextureUCoordinates);
+		rsModel.setFaceTextureVCoordinates(rl$faceTextureVCoordinates);
+	}
+
+	@Inject
+	public void interpolateFrames(RSSkeleton skin, RSAnimation frame, RSAnimation nextFrame, int interval, int intervalCount)
 	{
 		if (nextFrame == null || interval == 0)
 		{
@@ -138,7 +356,7 @@ public abstract class RSModelMixin implements RSModel
 			{
 				int type = frame.getTransformTypes()[i];
 				this.animate(skin.getTypes()[type], skin.getList()[type], frame.getTranslatorX()[i],
-						frame.getTranslatorY()[i], frame.getTranslatorZ()[i]);
+					frame.getTranslatorY()[i], frame.getTranslatorZ()[i]);
 			}
 		}
 		else
@@ -149,13 +367,13 @@ public abstract class RSModelMixin implements RSModel
 			{
 				boolean frameValid = false;
 				if (transformIndex < frame.getTransformCount()
-						&& frame.getTransformTypes()[transformIndex] == i)
+					&& frame.getTransformTypes()[transformIndex] == i)
 				{
 					frameValid = true;
 				}
 				boolean nextFrameValid = false;
 				if (nextTransformIndex < nextFrame.getTransformCount()
-						&& nextFrame.getTransformTypes()[nextTransformIndex] == i)
+					&& nextFrame.getTransformTypes()[nextTransformIndex] == i)
 				{
 					nextFrameValid = true;
 				}
@@ -192,24 +410,24 @@ public abstract class RSModelMixin implements RSModel
 					int translateZ;
 					if (type == 2)
 					{
-						int deltaX = nextTranslateX - currentTranslateX & 0x3fff;
-						int deltaY = nextTranslateY - currentTranslateY & 0x3fff;
-						int deltaZ = nextTranslateZ - currentTranslateZ & 0x3fff;
-						if (deltaX >= 8192)
+						int deltaX = nextTranslateX - currentTranslateX & 0xFF;
+						int deltaY = nextTranslateY - currentTranslateY & 0xFF;
+						int deltaZ = nextTranslateZ - currentTranslateZ & 0xFF;
+						if (deltaX >= 128)
 						{
-							deltaX -= 16384;
+							deltaX -= 256;
 						}
-						if (deltaY >= 8192)
+						if (deltaY >= 128)
 						{
-							deltaY -= 16384;
+							deltaY -= 256;
 						}
-						if (deltaZ >= 8192)
+						if (deltaZ >= 128)
 						{
-							deltaZ -= 16384;
+							deltaZ -= 256;
 						}
-						translateX = currentTranslateX + deltaX * interval / intervalCount & 0x3fff;
-						translateY = currentTranslateY + deltaY * interval / intervalCount & 0x3fff;
-						translateZ = currentTranslateZ + deltaZ * interval / intervalCount & 0x3fff;
+						translateX = currentTranslateX + deltaX * interval / intervalCount & 0xFF;
+						translateY = currentTranslateY + deltaY * interval / intervalCount & 0xFF;
+						translateZ = currentTranslateZ + deltaZ * interval / intervalCount & 0xFF;
 					}
 					else if (type == 5)
 					{
@@ -230,50 +448,5 @@ public abstract class RSModelMixin implements RSModel
 				}
 			}
 		}
-	}
-
-	@Override
-	@Inject
-	public Polygon getConvexHull(int localX, int localY, int orientation)
-	{
-		List<Vertex> vertices = getVertices();
-
-		// rotate vertices
-		for (int i = 0; i < vertices.size(); ++i)
-		{
-			Vertex v = vertices.get(i);
-			vertices.set(i, v.rotate(orientation));
-		}
-
-		List<Point> points = new ArrayList<Point>();
-
-		for (Vertex v : vertices)
-		{
-			// Compute canvas location of vertex
-			Point p = Perspective.worldToCanvas(client,
-				localX - v.getX(),
-				localY - v.getZ(),
-				-v.getY());
-			if (p != null)
-			{
-				points.add(p);
-			}
-		}
-
-		// Run Jarvis march algorithm
-		points = Jarvis.convexHull(points);
-		if (points == null)
-		{
-			return null;
-		}
-
-		// Convert to a polygon
-		Polygon p = new Polygon();
-		for (Point point : points)
-		{
-			p.addPoint(point.getX(), point.getY());
-		}
-
-		return p;
 	}
 }

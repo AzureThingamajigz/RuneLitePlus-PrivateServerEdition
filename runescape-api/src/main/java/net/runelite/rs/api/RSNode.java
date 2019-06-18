@@ -29,15 +29,23 @@ import net.runelite.mapping.Import;
 
 public interface RSNode extends Node
 {
-	@Import("next")
+	@Import("previous")
 	@Override
 	RSNode getNext();
 
-	@Import("hash")
+	@Import("key")
 	@Override
 	long getHash();
 
-	@Import("previous")
+	@Import("next")
 	@Override
 	RSNode getPrevious();
+
+	@Import("remove")
+	void unlink();
+
+	/**
+	 * Called when this node is unlinked
+	 */
+	void onUnlink();
 }

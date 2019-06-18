@@ -24,12 +24,21 @@
  */
 package net.runelite.api.events;
 
-import lombok.Data;
 import net.runelite.api.Script;
+import lombok.Data;
 
+/**
+ * A callback from a runelite_callback opcode in a cs2
+ */
 @Data
 public class ScriptCallbackEvent
 {
+	/**
+	 * The script being called.
+	 */
 	private Script script;
+	/**
+	 * The name of the event that triggered script execution.
+	 */
 	private String eventName;
 }

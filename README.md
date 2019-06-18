@@ -1,34 +1,27 @@
-![](https://runelite.net/img/logo.png)
-# runelite [![Travis](https://img.shields.io/travis/runelite/runelite.svg)](https://travis-ci.org/runelite/runelite) [![Discord](https://img.shields.io/discord/301497432909414422.svg)](https://discord.gg/mePCs8U)
+![](https://i.imgur.com/OVRdQBz.png)
 
-runelite is a RuneScape 2 client and reverse engineering project
 
-If you have any questions, please join our IRC channel on [irc.rizon.net #runelite](http://qchat.rizon.net/?channels=runelite&uio=d4) or alternatively our [Discord](https://discord.gg/mePCs8U) server.
 
-## Project Layout
+# RuneLitePlus-PS rev180 [![Build Status](https://travis-ci.org/zeruth/runeliteplus-ps.svg?branch=master)](https://travis-ci.org/zeruth/runeliteplus-ps) [![Discord](https://img.shields.io/discord/373382904769675265.svg)](https://discord.gg/HN5gf3m)
 
-- cache - Libraries used for reading/writing cache files, as well as the data in it
-- deobfuscator - Contains bytecode deobfuscator, mapper for handling updates, and the injector
-- http-api - API for api.runelite.net
-- http-service - Service for api.runelite.net
-- model-viewer - RS Model, NPC/Object, and terrain viewer
-- runelite-api - RuneLite API, interfaces for accessing the client
-- runelite-mixins - Mixins which are injected into the injected client's classes
-- runescape-api - Mappings correspond to these interfaces, runelite-api is a subset of this
-- runelite-client - Game client with plugins
-- runescape-client-injector - Builds the injected client from the vanilla client and the mappings
-- runescape-client - Decompiled RuneScape client, contains mappings
+[RuneLitePlus-PS](https://runelitepl.us)  is a fork of [RuneLite](https://github.com/runelite/runelite) that provides more functionality and less restrictions while staying open source. This is a specific version meant for rs-mod which can be found here:  
+https://www.rune-server.ee/runescape-development/rs2-server/downloads/684206-180-rs-mod-release.html
 
 ## Usage
 
-Open the project in your IDE as a Maven project, build the root module and then run the RuneLite class in runelite-client.  
-For more information visit the [RuneLite Wiki](https://github.com/runelite/runelite/wiki).
+By default, this connects to our sandbox server, which is for client testing.
 
-### License
+To setup your rsa keys, navigate to runelite-mixins and go to RSBufferMixin and set modulus and exponent  
+To setup your codebase, navigate to runelite-client/rs and go to Launcher and set codebase = new URL("http://IP_OR_URL_HERE/");  
 
-Most of RuneLite is licensed under the BSD 2-clause license. See the license header in the respective file to be sure.
-Some of the code, like everything in runescape-client, is automatically generated and is not licensed.
+After that it's ran much like RuneLite or RuneLitePlus, install then run RuneLite.main()
+  
+To release the built jar publicly, you'd have to host your injected client remotely and make some small modifications to rs.ClientLoader
+
+## License
+
+RuneLitePlus-PS is licensed under the BSD 2-clause license. See the license header in the respective file to be sure.
 
 ## Contribute and Develop
 
-We've set up a separate document for our [contribution guidelines](https://github.com/runelite/runelite/blob/master/CONTRIBUTING.md).
+We've set up a separate document for our [contribution guidelines](https://github.com/runelite-extended/runelite/blob/master/.github/CONTRIBUTING.md).

@@ -32,7 +32,7 @@ import net.runelite.client.plugins.puzzlesolver.solver.heuristics.Heuristic;
 
 /**
  * An implementation of the IDA* algorithm.
- *
+ * <p>
  * https://en.wikipedia.org/wiki/Iterative_deepening_A*
  */
 public class IDAStar extends Pathfinder
@@ -46,11 +46,6 @@ public class IDAStar extends Pathfinder
 	public List<PuzzleState> computePath(PuzzleState root)
 	{
 		PuzzleState goalNode = path(root);
-
-		if (goalNode == null)
-		{
-			return null;
-		}
 
 		List<PuzzleState> path = new ArrayList<>();
 

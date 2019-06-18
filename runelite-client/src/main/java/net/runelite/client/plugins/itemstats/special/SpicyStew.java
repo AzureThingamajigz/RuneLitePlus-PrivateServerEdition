@@ -28,7 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import net.runelite.api.Client;
 import net.runelite.api.Varbits;
-import net.runelite.client.plugins.itemstats.*;
+import net.runelite.client.plugins.itemstats.Effect;
+import net.runelite.client.plugins.itemstats.Positivity;
+import net.runelite.client.plugins.itemstats.RangeStatChange;
+import net.runelite.client.plugins.itemstats.StatChange;
+import net.runelite.client.plugins.itemstats.StatsChanges;
 import net.runelite.client.plugins.itemstats.stats.Stat;
 import net.runelite.client.plugins.itemstats.stats.Stats;
 
@@ -119,9 +123,9 @@ public class SpicyStew implements Effect
 	/**
 	 * Calculate the fields of a stat change tooltip row.
 	 *
-	 * @param stat Stat that the spice boost affects.
+	 * @param stat       Stat that the spice boost affects.
 	 * @param spiceBoost Potential spice boost before capping.
-	 * @param client Client API, needed to check current stat values.
+	 * @param client     Client API, needed to check current stat values.
 	 * @return StatChange object with all required values.
 	 */
 	private static StatChange statChangeOf(Stat stat, int spiceBoost, Client client)
@@ -132,11 +136,14 @@ public class SpicyStew implements Effect
 		int currentBoost = currentValue - currentBase; // Can be negative
 		int spiceBoostCapped = (currentBoost <= 0) ? spiceBoost : Math.max(0, spiceBoost - currentBoost);
 
-		StatChange change = new StatChange();
+		final RangeStatChange change = new RangeStatChange();
 		change.setStat(stat);
-		change.setRelative("±" + spiceBoostCapped);
-		change.setTheoretical("±" + spiceBoost);
-		change.setAbsolute(String.valueOf(stat.getValue(client) + spiceBoostCapped));
+		change.setMinRelative(-spiceBoost);
+		change.setRelative(spiceBoostCapped);
+		change.setMinTheoretical(-spiceBoost);
+		change.setTheoretical(spiceBoost);
+		change.setMinAbsolute(Math.max(-spiceBoost, -currentValue));
+		change.setAbsolute(stat.getValue(client) + spiceBoostCapped);
 
 		Positivity positivity;
 		if (spiceBoostCapped == 0)
@@ -155,5 +162,4 @@ public class SpicyStew implements Effect
 
 		return change;
 	}
-
 }

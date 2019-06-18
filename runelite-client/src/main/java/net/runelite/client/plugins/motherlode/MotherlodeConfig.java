@@ -29,19 +29,25 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-	keyName = "motherlode",
-	name = "Motherlode Mine",
-	description = "Configuration for the Motherlode Mine plugin"
-)
+@ConfigGroup("motherlode")
 public interface MotherlodeConfig extends Config
 {
 	@ConfigItem(
-		keyName = "showRocks",
+		keyName = "showVeins",
 		name = "Show pay-dirt mining spots",
 		description = "Configures whether or not the pay-dirt mining spots are displayed."
 	)
-	default boolean showRocks()
+	default boolean showVeins()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showRocks",
+		name = "Show rocks obstacles",
+		description = "Configures whether or not the fallen rocks obstacles are displayed."
+	)
+	default boolean showRockFalls()
 	{
 		return true;
 	}
@@ -105,4 +111,35 @@ public interface MotherlodeConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "showOresFound",
+		name = "Show ores found",
+		description = "Shows the ores found during current mining session"
+	)
+	default boolean showOresFound()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "notifyOnIdle",
+		name = "Idle notification",
+		description = "Sends a notification when the player stops mining"
+	)
+	default boolean notifyOnIdle()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "showTargetVein",
+		name = "Show vein currently being mined",
+		description = "Highlights the vein currently being mined"
+	)
+	default boolean showTargetVein()
+	{
+		return false;
+	}
+
 }

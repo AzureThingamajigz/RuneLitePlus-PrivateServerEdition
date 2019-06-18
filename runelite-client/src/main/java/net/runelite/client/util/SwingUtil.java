@@ -25,16 +25,13 @@
 package net.runelite.client.util;
 
 import java.awt.AWTException;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.awt.SystemTray;
-import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -56,11 +53,16 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.plaf.basic.BasicProgressBarUI;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.components.CustomScrollBarUI;
+import net.runelite.client.ui.skin.SubstanceRuneLiteLookAndFeel;
 import org.pushingpixels.substance.internal.SubstanceSynapse;
-import org.pushingpixels.substance.internal.utils.SubstanceCoreUtilities;
 
 /**
  * Various Swing utilities.
@@ -68,6 +70,8 @@ import org.pushingpixels.substance.internal.utils.SubstanceCoreUtilities;
 @Slf4j
 public class SwingUtil
 {
+	private static boolean lookAndFeelIsSet = false;
+
 	/**
 	 * Sets some sensible defaults for swing.
 	 * IMPORTANT! Needs to be called before main frame creation
@@ -77,7 +81,27 @@ public class SwingUtil
 		// Force heavy-weight popups/tooltips.
 		// Prevents them from being obscured by the game applet.
 		ToolTipManager.sharedInstance().setLightWeightPopupEnabled(false);
+		ToolTipManager.sharedInstance().setInitialDelay(300);
 		JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+
+		UIManager.put("Button.foreground", Color.WHITE);
+		UIManager.put("MenuItem.foreground", Color.WHITE);
+		UIManager.put("Panel.background", ColorScheme.DARK_GRAY_COLOR);
+		UIManager.put("ScrollBarUI", CustomScrollBarUI.class.getName());
+		UIManager.put("TextField.selectionBackground", ColorScheme.BRAND_ORANGE_TRANSPARENT);
+		UIManager.put("TextField.selectionForeground", Color.WHITE);
+		UIManager.put("FormattedTextField.selectionBackground", ColorScheme.BRAND_ORANGE_TRANSPARENT);
+		UIManager.put("FormattedTextField.selectionForeground", Color.WHITE);
+		UIManager.put("TextArea.selectionBackground", ColorScheme.BRAND_ORANGE_TRANSPARENT);
+		UIManager.put("TextArea.selectionForeground", Color.WHITE);
+		UIManager.put("ProgressBar.background", ColorScheme.BRAND_ORANGE_TRANSPARENT.darker());
+		UIManager.put("ProgressBar.foreground", ColorScheme.BRAND_ORANGE);
+		UIManager.put("ProgressBar.selectionBackground", ColorScheme.BRAND_ORANGE);
+		UIManager.put("ProgressBar.selectionForeground", Color.BLACK);
+		UIManager.put("ProgressBar.border", new EmptyBorder(0, 0, 0, 0));
+		UIManager.put("ProgressBar.verticalSize", new Dimension(12, 10));
+		UIManager.put("ProgressBar.horizontalSize", new Dimension(10, 12));
+		UIManager.put("ProgressBarUI", BasicProgressBarUI.class.getName());
 
 		// Do not render shadows under popups/tooltips.
 		// Fixes black boxes under popups that are above the game applet.
@@ -173,20 +197,6 @@ public class SwingUtil
 	}
 
 	/**
-	 * Check if point is in screen bounds.
-	 *
-	 * @param x the x
-	 * @param y the y
-	 * @return the boolean
-	 */
-	public static boolean isInScreenBounds(final int x, final int y)
-	{
-		final Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-		final Rectangle bounds = new Rectangle(size);
-		return bounds.contains(x, y);
-	}
-
-	/**
 	 * Add graceful exit callback.
 	 *
 	 * @param frame           the frame
@@ -210,7 +220,7 @@ public class SwingUtil
 						result = JOptionPane.showConfirmDialog(
 							frame,
 							"Are you sure you want to exit?", "Exit",
-							JOptionPane .OK_CANCEL_OPTION,
+							JOptionPane.OK_CANCEL_OPTION,
 							JOptionPane.QUESTION_MESSAGE);
 					}
 				}
@@ -228,17 +238,6 @@ public class SwingUtil
 		});
 	}
 
-	private static BufferedImage resizeImage(BufferedImage image, int newWidth, int newHeight)
-	{
-		final Image tmp = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-		final BufferedImage dimg = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
-
-		final Graphics2D g2d = dimg.createGraphics();
-		g2d.drawImage(tmp, 0, 0, null);
-		g2d.dispose();
-		return dimg;
-	}
-
 	/**
 	 * Create swing button from navigation button.
 	 *
@@ -254,11 +253,11 @@ public class SwingUtil
 	{
 
 		final BufferedImage scaledImage = iconSize > 0
-			? resizeImage(navigationButton.getIcon(), iconSize, iconSize)
+			? ImageUtil.resizeImage(navigationButton.getIcon(), iconSize, iconSize)
 			: navigationButton.getIcon();
 
 		final JButton button = new JButton();
-		button.setName(navigationButton.getName());
+		button.setSize(scaledImage.getWidth(), scaledImage.getHeight());
 		button.setToolTipText(navigationButton.getTooltip());
 		button.setIcon(new ImageIcon(scaledImage));
 		button.putClientProperty(SubstanceSynapse.FLAT_LOOK, Boolean.TRUE);
@@ -295,13 +294,22 @@ public class SwingUtil
 	}
 
 	/**
-	 * Checks if custom substance title pane is present.
-	 *
-	 * @param frame the parent frame
-	 * @return true if title pane is present
+	 * Sets up the RuneLite look and feel. Checks to see if the look and feel
+	 * was already set up before running in case the splash screen has already
+	 * set up the theme.
+	 * This must be run inside the Swing Event Dispatch thread.
 	 */
-	public static boolean isCustomTitlePanePresent(final Window frame)
+	public static void setupRuneLiteLookAndFeel()
 	{
-		return SubstanceCoreUtilities.getTitlePaneComponent(frame) != null;
+		if (!lookAndFeelIsSet)
+		{
+			lookAndFeelIsSet = true;
+			// Set some sensible swing defaults
+			SwingUtil.setupDefaults();
+			// Use substance look and feel
+			SwingUtil.setTheme(new SubstanceRuneLiteLookAndFeel());
+			// Use custom UI font
+			SwingUtil.setFont(FontManager.getRunescapeFont());
+		}
 	}
 }

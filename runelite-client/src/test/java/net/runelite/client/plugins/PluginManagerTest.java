@@ -31,20 +31,27 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.grapher.graphviz.GraphvizGrapher;
 import com.google.inject.grapher.graphviz.GraphvizModule;
+import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.google.inject.util.Modules;
+import java.applet.Applet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import joptsimple.OptionSet;
 import net.runelite.api.Client;
 import net.runelite.client.RuneLite;
 import net.runelite.client.RuneLiteModule;
+import net.runelite.client.config.Config;
+import net.runelite.client.config.ConfigItem;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.rs.ClientUpdateCheckMode;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Rule;
@@ -52,7 +59,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,25 +69,29 @@ public class PluginManagerTest
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 
-	private RuneLite runelite;
-	private Set<Class> pluginClasses;
+	@Mock
+	@Bind
+	public Applet applet;
 
 	@Mock
-	Client client;
+	@Bind
+	public Client client;
+
+	private Set<Class> pluginClasses;
+	private Set<Class> configClasses;
 
 	@Before
 	public void before() throws IOException
 	{
-		RuneLite.setOptions(mock(OptionSet.class));
+		Injector injector = Guice.createInjector(Modules
+			.override(new RuneLiteModule(ClientUpdateCheckMode.AUTO, true))
+			.with(BoundFieldModule.of(this)));
 
-		Injector injector = Guice.createInjector(new RuneLiteModule(),
-			BoundFieldModule.of(this));
 		RuneLite.setInjector(injector);
 
-		runelite = injector.getInstance(RuneLite.class);
-
-		// Find plugins we expect to have
+		// Find plugins and configs we expect to have
 		pluginClasses = new HashSet<>();
+		configClasses = new HashSet<>();
 		Set<ClassInfo> classes = ClassPath.from(getClass().getClassLoader()).getTopLevelClassesRecursive(PLUGIN_PACKAGE);
 		for (ClassInfo classInfo : classes)
 		{
@@ -90,6 +100,12 @@ public class PluginManagerTest
 			if (pluginDescriptor != null)
 			{
 				pluginClasses.add(clazz);
+				continue;
+			}
+
+			if (Config.class.isAssignableFrom(clazz))
+			{
+				configClasses.add(clazz);
 			}
 		}
 
@@ -98,22 +114,24 @@ public class PluginManagerTest
 	@Test
 	public void testLoadPlugins() throws Exception
 	{
-		PluginManager pluginManager = new PluginManager();
+		PluginManager pluginManager = new PluginManager(false, null, null, null, null, null);
 		pluginManager.setOutdated(true);
 		pluginManager.loadCorePlugins();
 		Collection<Plugin> plugins = pluginManager.getPlugins();
 		long expected = pluginClasses.stream()
 			.map(cl -> (PluginDescriptor) cl.getAnnotation(PluginDescriptor.class))
 			.filter(Objects::nonNull)
-			.filter(pd -> pd.loadWhenOutdated())
+			.filter(PluginDescriptor::loadWhenOutdated)
 			.count();
 		assertEquals(expected, plugins.size());
 
-		runelite.setClient(client);
-
-		pluginManager = new PluginManager();
+		pluginManager = new PluginManager(false, null, null, null, null, null);
 		pluginManager.loadCorePlugins();
 		plugins = pluginManager.getPlugins();
+
+		// Check that the plugins register with the eventbus without errors
+		EventBus eventBus = new EventBus();
+		plugins.forEach(eventBus::register);
 
 		expected = pluginClasses.stream()
 			.map(cl -> (PluginDescriptor) cl.getAnnotation(PluginDescriptor.class))
@@ -128,11 +146,9 @@ public class PluginManagerTest
 	{
 		List<Module> modules = new ArrayList<>();
 		modules.add(new GraphvizModule());
-		modules.add(new RuneLiteModule());
+		modules.add(new RuneLiteModule(ClientUpdateCheckMode.AUTO, true));
 
-		runelite.setClient(client);
-
-		PluginManager pluginManager = new PluginManager();
+		PluginManager pluginManager = new PluginManager(true, null, null, null, null, null);
 		pluginManager.loadCorePlugins();
 		for (Plugin p : pluginManager.getPlugins())
 		{
@@ -147,6 +163,39 @@ public class PluginManagerTest
 			grapher.setOut(out);
 			grapher.setRankdir("TB");
 			grapher.graph(injector);
+		}
+	}
+
+	@Test
+	public void ensureNoDuplicateConfigKeyNames()
+	{
+		for (final Class clazz : configClasses)
+		{
+			final Set<String> configKeyNames = new HashSet<>();
+
+			for (final Method method : clazz.getMethods())
+			{
+				if (!method.isDefault())
+				{
+					continue;
+				}
+
+				final ConfigItem annotation = method.getAnnotation(ConfigItem.class);
+
+				if (annotation == null)
+				{
+					continue;
+				}
+
+				final String configKeyName = annotation.keyName();
+
+				if (configKeyNames.contains(configKeyName))
+				{
+					throw new IllegalArgumentException("keyName " + configKeyName + " is duplicated in " + clazz);
+				}
+
+				configKeyNames.add(configKeyName);
+			}
 		}
 	}
 

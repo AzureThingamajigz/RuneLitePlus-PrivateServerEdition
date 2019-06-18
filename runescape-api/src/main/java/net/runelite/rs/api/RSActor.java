@@ -27,13 +27,22 @@ package net.runelite.rs.api;
 import net.runelite.api.Actor;
 import net.runelite.mapping.Import;
 
-public interface RSActor extends RSRenderable, Actor
+public interface RSActor extends RSEntity, Actor
 {
-	@Import("interacting")
+	@Import("targetIndex")
 	int getRSInteracting();
 
-	@Import("overhead")
-	String getOverhead();
+	// Overhead text
+
+	@Import("overheadText")
+	@Override
+	String getOverheadText();
+
+	@Import("overheadText")
+	@Override
+	void setOverheadText(String overheadText);
+
+	// Coord stuff
 
 	@Import("x")
 	int getX();
@@ -47,68 +56,88 @@ public interface RSActor extends RSRenderable, Actor
 	@Import("pathY")
 	int[] getPathY();
 
-	@Import("animation")
+	// Animation
+
+	@Import("sequence")
 	@Override
 	int getAnimation();
 
-	@Import("animation")
+	@Import("sequence")
 	@Override
 	void setAnimation(int animation);
 
-	@Import("graphic")
+	@Import("sequenceFrame")
 	@Override
-	int getGraphic();
+	int getActionFrame();
 
-	@Import("graphic")
+	@Import("sequenceFrame")
 	@Override
-	void setGraphic(int graphic);
+	void setActionFrame(int frame);
 
-	@Import("combatInfoList")
-	RSCombatInfoList getCombatInfoList();
+	@Import("sequenceFrameCycle")
+	@Override
+	int getActionFrameCycle();
+
+	// Spot animation (aka graphic)
+
+	@Import("spotAnimation")
+	@Override
+	int getSpotAnimation();
+
+	@Import("spotAnimation")
+	@Override
+	void setSpotAnimation(int id);
+
+	@Import("spotAnimationFrame")
+	int getSpotAnimationFrame();
+
+	@Import("spotAnimationFrame")
+	@Override
+	void setSpotAnimationFrame(int id);
+
+	@Import("spotAnimationFrameCycle")
+	int getSpotAnimationFrameCycle();
+
+	// Idle animation
+
+	@Import("idleSequence")
+	@Override
+	void setIdlePoseAnimation(int animation);
+
+	// Movement animation (aka poseAnimation)
+
+	@Import("movementSequence")
+	@Override
+	void setPoseAnimation(int animation);
+
+	@Import("movementFrame")
+	int getPoseFrame();
+
+	@Import("movementFrame")
+	void setPoseFrame(int frame);
+
+	@Import("movementFrameCycle")
+	int getPoseFrameCycle();
+
+	@Import("defaultHeight")
+	@Override
+	int getLogicalHeight();
 
 	@Import("orientation")
 	@Override
 	int getOrientation();
 
-	@Import("logicalHeight")
-	@Override
-	int getLogicalHeight();
+	// Health stuff
 
-	@Import("actionFrame")
-	int getActionFrame();
+	@Import("healthBars")
+	RSIterableNodeDeque getHealthBars();
 
-	@Import("actionFrame")
-	@Override
-	void setActionFrame(int frame);
-
-	@Import("actionFrameCycle")
-	int getActionFrameCycle();
-
-	@Import("poseFrame")
-	int getPoseFrame();
-
-	@Import("poseFrame")
-	void setPoseFrame(int frame);
-
-	@Import("poseFrameCycle")
-	int getPoseFrameCycle();
-
-	@Import("spotAnimFrame")
-	int getSpotAnimFrame();
-
-	@Import("spotAnimFrame")
-	@Override
-	void setSpotAnimFrame(int frame);
-
-	@Import("spotAnimFrameCycle")
-	int getSpotAnimFrameCycle();
-
-	@Import("hitsplatValues")
+	@Import("hitSplatValues")
 	int[] getHitsplatValues();
 
-	@Import("hitsplatTypes")
+	@Import("hitSplatTypes")
 	int[] getHitsplatTypes();
 
-	@Import("hitsplatCycles")
+	@Import("hitSplatCycles")
 	int[] getHitsplatCycles();
 }

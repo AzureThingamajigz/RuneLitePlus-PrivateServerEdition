@@ -26,7 +26,7 @@ package net.runelite.client.plugins.cluescrolls.clues.emote;
 
 import net.runelite.api.Client;
 import net.runelite.api.Item;
-import net.runelite.api.ItemComposition;
+import net.runelite.api.ItemDefinition;
 
 public class SingleItemRequirement implements ItemRequirement
 {
@@ -35,6 +35,12 @@ public class SingleItemRequirement implements ItemRequirement
 	public SingleItemRequirement(int itemId)
 	{
 		this.itemId = itemId;
+	}
+
+	@Override
+	public boolean fulfilledBy(int itemId)
+	{
+		return this.itemId == itemId;
 	}
 
 	@Override
@@ -54,7 +60,7 @@ public class SingleItemRequirement implements ItemRequirement
 	@Override
 	public String getCollectiveName(Client client)
 	{
-		ItemComposition definition = client.getItemDefinition(itemId);
+		ItemDefinition definition = client.getItemDefinition(itemId);
 
 		if (definition == null)
 		{

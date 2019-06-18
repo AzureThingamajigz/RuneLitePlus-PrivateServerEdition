@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Cameron <https://github.com/noremac201>
+ * Copyright (c) 2018, https://runelitepl.us
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum Calls
-{
-	//Attacker Calls
+{   //Attacker Calls
 	RED_EGG("Red egg", "Tell-red"),
 	GREEN_EGG("Green egg", "Tell-green"),
 	BLUE_EGG("Blue egg", "Tell-blue"),

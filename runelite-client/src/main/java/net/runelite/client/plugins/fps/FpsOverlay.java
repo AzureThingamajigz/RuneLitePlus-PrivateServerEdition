@@ -26,10 +26,12 @@ package net.runelite.client.plugins.fps;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.Point;
+import net.runelite.api.Varbits;
 import net.runelite.api.events.FocusChanged;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -47,41 +49,23 @@ import net.runelite.client.ui.overlay.OverlayUtil;
  */
 public class FpsOverlay extends Overlay
 {
-	private static final int MAX_FPS = 50;
-	private static final int FPS_SIZE = MAX_FPS + 1;
-	private static final int Y_OFFSET = 14;
-	private static final int VALUE_X_OFFSET = 15;
-	private static final String FPS_STRING = " FPS";
-
-	// Cache of FPS number strings from 00-50
-	private final String[] fpsNums;
-
 	// Local dependencies
 	private final FpsConfig config;
 	private final Client client;
+	private final FpsPlugin plugin;
 
 	// Often changing values
 	private boolean isFocused = true;
 
 	@Inject
-	private FpsOverlay(FpsConfig config, Client client)
+	private FpsOverlay(FpsPlugin plugin, FpsConfig config, Client client)
 	{
 		this.config = config;
 		this.client = client;
+		this.plugin = plugin;
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		setPriority(OverlayPriority.HIGH);
 		setPosition(OverlayPosition.DYNAMIC);
-
-		// Populate pre-allocated strings of FPS, these are constant and there's no reason
-		// to create additional garbage
-		// FPS should never exceed 50, we have 0-50 (51 entries)
-		String[] fpsNums = new String[FPS_SIZE];
-		for (int i = 0; i < FPS_SIZE; i++)
-		{
-			fpsNums[i] = String.format("%02d", i);
-		}
-		this.fpsNums = fpsNums;
-
 	}
 
 	void onFocusChanged(FocusChanged event)
@@ -100,20 +84,61 @@ public class FpsOverlay extends Overlay
 		return isEnforced() ? Color.red : Color.yellow;
 	}
 
+	private static Color getPingColor(int ping)
+	{
+		if (ping >= 100 || ping < 0)
+		{
+			return Color.red;
+		}
+		else if (ping >= 50)
+		{
+			return Color.yellow;
+		}
+		return Color.green;
+	}
+
+	private int calculateOffset()
+	{
+		if ((client.getVar(Varbits.SIDE_PANELS) == 1) && client.isResized())
+		{
+			return 27;
+		}
+
+		return 2;
+	}
+
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.drawFps())
+		if (!config.drawFps() && !config.drawPing())
 		{
 			return null;
 		}
 
-		final int fps = client.getFPS();
-		if (fps < FPS_SIZE)
+		final int offset = calculateOffset();
+		final int width = (int) client.getRealDimensions().getWidth();
+		final FontMetrics fontMetrics = graphics.getFontMetrics();
+
+		int baseYOffset = (fontMetrics.getAscent() - fontMetrics.getDescent()) + 1;
+
+		if (config.drawFps())
 		{
-			final int width = client.getCanvas().getWidth();
-			final Point point = new Point(width - VALUE_X_OFFSET - graphics.getFontMetrics().stringWidth(FPS_STRING), Y_OFFSET);
-			OverlayUtil.renderTextLocation(graphics, point, fpsNums[fps] + FPS_STRING, getFpsValueColor());
+			final String fpsText = String.format("%d FPS", client.getFPS());
+			final int textWidth = fontMetrics.stringWidth(fpsText);
+
+			final Point point = new Point(width - textWidth - offset, baseYOffset);
+			OverlayUtil.renderTextLocation(graphics, point, fpsText, getFpsValueColor());
+
+			baseYOffset += 11;
+		}
+
+		if (config.drawPing())
+		{
+			final String pingText = String.format("%dms", plugin.getPing());
+			final int textWidth = fontMetrics.stringWidth(pingText);
+
+			final Point point = new Point(width - textWidth - offset, baseYOffset);
+			OverlayUtil.renderTextLocation(graphics, point, pingText, getPingColor(plugin.getPing()));
 		}
 
 		return null;

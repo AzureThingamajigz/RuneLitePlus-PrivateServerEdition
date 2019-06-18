@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018, Seth <https://github.com/sethtroll>
+ * Copyright (c) 2018, Psikoi <https://github.com/psikoi>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,47 +27,64 @@ package net.runelite.client.plugins.grandexchange;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.AsyncBufferedImage;
+import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.util.LinkBrowser;
 import net.runelite.client.util.StackFormatter;
 
-@Slf4j
+/**
+ * This panel displays an individual item result in the
+ * Grand Exchange search plugin.
+ */
 class GrandExchangeItemPanel extends JPanel
 {
 	private static final Dimension ICON_SIZE = new Dimension(32, 32);
 
-	GrandExchangeItemPanel(AsyncBufferedImage icon, String name, int itemID, int gePrice, Double
-		haPrice)
+	GrandExchangeItemPanel(AsyncBufferedImage icon, String name, int itemID, int gePrice, int
+		haPrice, int geItemLimit)
 	{
 		BorderLayout layout = new BorderLayout();
 		layout.setHgap(5);
 		setLayout(layout);
 		setToolTipText(name);
+		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
 		Color background = getBackground();
+		List<JPanel> panels = new ArrayList<>();
+		panels.add(this);
 
-		addMouseListener(new MouseAdapter()
+		MouseAdapter itemPanelMouseListener = new MouseAdapter()
 		{
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				setBackground(getBackground().darker().darker());
+				for (JPanel panel : panels)
+				{
+					matchComponentBackground(panel, ColorScheme.DARK_GRAY_HOVER_COLOR);
+				}
+				setCursor(new Cursor(Cursor.HAND_CURSOR));
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				setBackground(background);
+				for (JPanel panel : panels)
+				{
+					matchComponentBackground(panel, background);
+				}
+				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 
 			@Override
@@ -74,13 +92,11 @@ class GrandExchangeItemPanel extends JPanel
 			{
 				geLink(name, itemID);
 			}
-		});
+		};
 
-		setBorder(new CompoundBorder
-		(
-			new LineBorder(getBackground().brighter(), 1),
-			new EmptyBorder(5, 5, 5, 5)
-		));
+		addMouseListener(itemPanelMouseListener);
+
+		setBorder(new EmptyBorder(5, 5, 5, 0));
 
 		// Icon
 		JLabel itemIcon = new JLabel();
@@ -93,10 +109,14 @@ class GrandExchangeItemPanel extends JPanel
 
 		// Item details panel
 		JPanel rightPanel = new JPanel(new GridLayout(3, 1));
-		rightPanel.setOpaque(false);
+		panels.add(rightPanel);
+		rightPanel.setBackground(background);
 
 		// Item name
 		JLabel itemName = new JLabel();
+		itemName.setForeground(Color.WHITE);
+		itemName.setMaximumSize(new Dimension(0, 0));        // to limit the label's size for
+		itemName.setPreferredSize(new Dimension(0, 0));    // items with longer names
 		itemName.setText(name);
 		rightPanel.add(itemName);
 
@@ -110,19 +130,42 @@ class GrandExchangeItemPanel extends JPanel
 		{
 			gePriceLabel.setText("N/A");
 		}
-		gePriceLabel.setForeground(Color.GREEN);
+		gePriceLabel.setForeground(ColorScheme.GRAND_EXCHANGE_PRICE);
 		rightPanel.add(gePriceLabel);
+
+		JPanel alchAndLimitPanel = new JPanel(new BorderLayout());
+		panels.add(alchAndLimitPanel);
+		alchAndLimitPanel.setBackground(background);
 
 		// Alch price
 		JLabel haPriceLabel = new JLabel();
-		haPriceLabel.setText(StackFormatter.formatNumber(haPrice.intValue()) + " alch");
-		haPriceLabel.setForeground(Color.orange);
-		rightPanel.add(haPriceLabel);
+		haPriceLabel.setText(StackFormatter.formatNumber(haPrice) + " alch");
+		haPriceLabel.setForeground(ColorScheme.GRAND_EXCHANGE_ALCH);
+		alchAndLimitPanel.add(haPriceLabel, BorderLayout.WEST);
+
+		// GE Limit
+		JLabel geLimitLabel = new JLabel();
+		String limitLabelText = geItemLimit == 0 ? "" : "Limit " + StackFormatter.formatNumber(geItemLimit);
+		geLimitLabel.setText(limitLabelText);
+		geLimitLabel.setForeground(ColorScheme.GRAND_EXCHANGE_LIMIT);
+		geLimitLabel.setBorder(new CompoundBorder(geLimitLabel.getBorder(), new EmptyBorder(0, 0, 0, 7)));
+		alchAndLimitPanel.add(geLimitLabel, BorderLayout.EAST);
+
+		rightPanel.add(alchAndLimitPanel);
 
 		add(rightPanel, BorderLayout.CENTER);
 	}
 
-	private void geLink(String name, int itemID)
+	private void matchComponentBackground(JPanel panel, Color color)
+	{
+		panel.setBackground(color);
+		for (Component c : panel.getComponents())
+		{
+			c.setBackground(color);
+		}
+	}
+
+	private static void geLink(String name, int itemID)
 	{
 		final String url = "http://services.runescape.com/m=itemdb_oldschool/"
 			+ name.replaceAll(" ", "_")

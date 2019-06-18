@@ -26,8 +26,8 @@ package net.runelite.client.plugins.itemstats;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.runelite.client.plugins.itemstats.stats.Stat;
 import net.runelite.api.Client;
+import net.runelite.client.plugins.itemstats.stats.Stat;
 
 public abstract class StatBoost extends SingleEffect
 {
@@ -88,10 +88,9 @@ public abstract class StatBoost extends SingleEffect
 		{
 			out.setPositivity(Positivity.WORSE);
 		}
-		out.setAbsolute(Integer.toString(newValue));
-		out.setRelative(String.format("%+d", delta));
-		out.setTheoretical(String.format("%+d", calcedDelta));
+		out.setAbsolute(newValue);
+		out.setRelative(delta);
+		out.setTheoretical(calcedDelta);
 		return out;
 	}
-
 }

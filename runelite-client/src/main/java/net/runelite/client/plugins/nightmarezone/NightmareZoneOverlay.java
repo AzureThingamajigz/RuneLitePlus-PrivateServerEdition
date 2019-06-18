@@ -29,15 +29,20 @@ import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.ItemID;
+import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
+import net.runelite.api.VarPlayer;
 import net.runelite.api.Varbits;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
+import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
+import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
-import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
+import net.runelite.client.ui.overlay.components.table.TableAlignment;
+import net.runelite.client.ui.overlay.components.table.TableComponent;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.StackFormatter;
 
@@ -54,12 +59,13 @@ class NightmareZoneOverlay extends Overlay
 
 	@Inject
 	NightmareZoneOverlay(
-			Client client,
-			NightmareZoneConfig config,
-			NightmareZonePlugin plugin,
-			InfoBoxManager infoBoxManager,
-			ItemManager itemManager)
+		Client client,
+		NightmareZoneConfig config,
+		NightmareZonePlugin plugin,
+		InfoBoxManager infoBoxManager,
+		ItemManager itemManager)
 	{
+		super(plugin);
 		setPosition(OverlayPosition.TOP_LEFT);
 		setPriority(OverlayPriority.LOW);
 		this.client = client;
@@ -67,6 +73,7 @@ class NightmareZoneOverlay extends Overlay
 		this.plugin = plugin;
 		this.infoBoxManager = infoBoxManager;
 		this.itemManager = itemManager;
+		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "NMZ overlay"));
 	}
 
 	@Override
@@ -97,10 +104,10 @@ class NightmareZoneOverlay extends Overlay
 		renderAbsorptionCounter();
 
 		panelComponent.getChildren().clear();
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Points: ")
-			.right(StackFormatter.formatNumber(client.getVar(Varbits.NMZ_POINTS)))
-			.build());
+		TableComponent tableComponent = new TableComponent();
+		tableComponent.setColumnAlignments(TableAlignment.LEFT, TableAlignment.RIGHT);
+		tableComponent.addRow("Points:", StackFormatter.formatNumber(client.getVar(Varbits.NMZ_POINTS)));
+		tableComponent.addRow("Total:", StackFormatter.formatNumber(client.getVar(VarPlayer.NMZ_REWARD_POINTS) + client.getVar(Varbits.NMZ_POINTS)));
 
 		return panelComponent.render(graphics);
 	}
@@ -124,7 +131,7 @@ class NightmareZoneOverlay extends Overlay
 			}
 			else
 			{
-				absorptionCounter.setAbsorption(absorptionPoints);
+				absorptionCounter.setCount(absorptionPoints);
 			}
 		}
 	}

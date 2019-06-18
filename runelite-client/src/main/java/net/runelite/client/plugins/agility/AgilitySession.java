@@ -30,26 +30,26 @@ import lombok.Setter;
 import net.runelite.api.Client;
 import net.runelite.api.Experience;
 import net.runelite.api.Skill;
+import net.runelite.api.VarPlayer;
 
 @Getter
 @Setter
-public class AgilitySession
+class AgilitySession
 {
 	private final Courses course;
 	private Instant lastLapCompleted;
 	private int totalLaps;
 	private int lapsTillLevel;
+	private int lapsTillGoal;
 
-	public AgilitySession(Courses course)
+	AgilitySession(Courses course)
 	{
 		this.course = course;
 	}
 
-	public void incrementLapCount(Client client)
+	void incrementLapCount(Client client)
 	{
-		Instant now = Instant.now();
-
-		lastLapCompleted = now;
+		lastLapCompleted = Instant.now();
 		++totalLaps;
 
 		int currentExp = client.getSkillExperience(Skill.AGILITY);
@@ -63,11 +63,14 @@ public class AgilitySession
 		} while (remainingXp < 0);
 
 		lapsTillLevel = remainingXp > 0 ? (int) Math.ceil(remainingXp / course.getTotalXp()) : 0;
+		int goalRemainingXp = client.getVar(VarPlayer.AGILITY_GOAL_END) - currentExp;
+		lapsTillGoal = goalRemainingXp > 0 ? (int) Math.ceil(goalRemainingXp / course.getTotalXp()) : 0;
 	}
 
-	public void resetLapCount()
+	void resetLapCount()
 	{
 		totalLaps = 0;
 		lapsTillLevel = 0;
+		lapsTillGoal = 0;
 	}
 }

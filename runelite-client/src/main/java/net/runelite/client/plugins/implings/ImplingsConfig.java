@@ -30,14 +30,9 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 /**
- *
  * @author robin
  */
-@ConfigGroup(
-	keyName = "implings",
-	name = "Implings",
-	description = "Configuration for the implings plugin"
-)
+@ConfigGroup("implings")
 public interface ImplingsConfig extends Config
 {
 	@ConfigItem(
@@ -311,6 +306,28 @@ public interface ImplingsConfig extends Config
 		description = "Configures whether or not impling names are displayed on minimap"
 	)
 	default boolean showName()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		position = 26,
+		keyName = "spawnColorDynamic",
+		name = "Impling dynamic spawn color",
+		description = "Text color for dynamic impling spawns in Puro Puro"
+	)
+	default Color getDynamicSpawnColor()
+	{
+		return Color.WHITE;
+	}
+
+	@ConfigItem(
+			position = 26,
+			keyName = "showCounter",
+			name = "Show impling counter overlay",
+			description = "Shows how many of each impling there is nearby"
+	)
+	default boolean showCounter()
 	{
 		return false;
 	}

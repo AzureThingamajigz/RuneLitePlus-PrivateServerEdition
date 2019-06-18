@@ -27,6 +27,9 @@ package net.runelite.api;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * An enumeration of local client variables.
+ */
 @AllArgsConstructor
 @Getter
 public enum Varbits
@@ -36,13 +39,15 @@ public enum Varbits
 	 */
 	TRANSPARENT_CHATBOX(4608),
 
-	/**
-	 * Runecraft pouches
+	/*
+	 * If the player has an active stamina potion effect or not
 	 */
-	POUCH_SMALL(603),
-	POUCH_MEDIUM(604),
-	POUCH_LARGE(605),
-	POUCH_GIANT(606),
+	RUN_SLOWED_DEPLETION_ACTIVE(25),
+
+	/**
+	 * If scrollbar in resizable mode chat is on the left
+	 */
+	CHAT_SCROLLBAR_ON_LEFT(6374),
 
 	/**
 	 * Runepouch
@@ -57,6 +62,7 @@ public enum Varbits
 	/**
 	 * Prayers
 	 */
+	QUICK_PRAYER(4103),
 	PRAYER_THICK_SKIN(4104),
 	PRAYER_BURST_OF_STRENGTH(4105),
 	PRAYER_CLARITY_OF_THOUGHT(4106),
@@ -120,6 +126,11 @@ public enum Varbits
 	DIARY_KARAMJA_HARD(3611),
 	DIARY_KARAMJA_ELITE(4566),
 
+	DIARY_KOUREND_EASY(7925),
+	DIARY_KOUREND_MEDIUM(7926),
+	DIARY_KOUREND_HARD(7927),
+	DIARY_KOUREND_ELITE(7928),
+
 	DIARY_LUMBRIDGE_EASY(4495),
 	DIARY_LUMBRIDGE_MEDIUM(4496),
 	DIARY_LUMBRIDGE_HARD(4497),
@@ -144,6 +155,15 @@ public enum Varbits
 	DIARY_WILDERNESS_MEDIUM(4467),
 	DIARY_WILDERNESS_HARD(4468),
 	DIARY_WILDERNESS_ELITE(4469),
+
+	/**
+	 * Kourend house favours
+	 */
+	KOUREND_FAVOR_ARCEUUS(4896),
+	KOUREND_FAVOR_HOSIDIUS(4895),
+	KOUREND_FAVOR_LOVAKENGJ(4898),
+	KOUREND_FAVOR_PISCARILIUS(4899),
+	KOUREND_FAVOR_SHAYZIEN(4894),
 
 	/**
 	 * Equipped weapon type
@@ -197,6 +217,30 @@ public enum Varbits
 	 * Barbarian Assault
 	 */
 	IN_GAME_BA(3923),
+	BA_GC(4768),
+
+	/**
+	 * 0 = Outside wilderness
+	 * 1 = In wilderness
+	 */
+	IN_WILDERNESS(5963),
+
+	/**
+	 * Fishing Trawler
+	 * FISHING_TRAWLER_ACTIVITY Expected values: 0-255
+	 */
+	FISHING_TRAWLER_ACTIVITY(3377),
+
+	/**
+	 * Blast Furnace Bar Dispenser
+	 * <p>
+	 * These are the expected values:
+	 * 0 = No bars being processed
+	 * 1 = Ores are being processed on the conveyor belt, bar dispenser cannot be checked
+	 * 2 = Bars are cooling down
+	 * 3 = Bars can be collected
+	 */
+	BAR_DISPENSER(936),
 
 	/**
 	 * Motherlode mine sack
@@ -206,6 +250,11 @@ public enum Varbits
 
 	/**
 	 * Experience tracker
+	 * <p>
+	 * EXPERIENCE_TRACKER_POSITION expected values:
+	 * 0 = Right
+	 * 1 = Middle
+	 * 2 = Left
 	 */
 	EXPERIENCE_TRACKER_POSITION(4692),
 	EXPERIENCE_TRACKER_COUNTER(4697),
@@ -224,6 +273,15 @@ public enum Varbits
 	TITHE_FARM_POINTS(4893),
 
 	/**
+	 * Blast Mine
+	 */
+	BLAST_MINE_COAL(4924),
+	BLAST_MINE_GOLD(4925),
+	BLAST_MINE_MITHRIL(4926),
+	BLAST_MINE_ADAMANTITE(4921),
+	BLAST_MINE_RUNITE(4922),
+
+	/**
 	 * Raids
 	 */
 	IN_RAID(5432),
@@ -232,10 +290,17 @@ public enum Varbits
 	RAID_PARTY_SIZE(5424),
 
 	/**
+	 * Theatre of Blood 1=In Party, 2=Inside/Spectator, 3=Dead Spectating
+	 */
+	THEATRE_OF_BLOOD(6440),
+	BLOAT_DOOR(6447),
+
+	/**
 	 * Nightmare Zone
 	 */
 	NMZ_ABSORPTION(3956),
 	NMZ_POINTS(3949),
+	NMZ_OVERLOAD(3955),
 
 	/**
 	 * Blast Furnace
@@ -265,7 +330,7 @@ public enum Varbits
 	 * Pyramid plunder
 	 */
 	PYRAMID_PLUNDER_TIMER(2375),
-	PYRAMID_PLUNDER_ROOM(2377),
+	PYRAMID_PLUNDER_ROOM(2374),
 
 	/**
 	 * Barrows
@@ -276,6 +341,8 @@ public enum Varbits
 	BARROWS_KILLED_KARIL(460),
 	BARROWS_KILLED_TORAG(461),
 	BARROWS_KILLED_VERAC(462),
+	BARROWS_REWARD_POTENTIAL(463),
+	BARROWS_NPCS_SLAIN(464),
 
 	/**
 	 * Spicy stew ingredients
@@ -291,18 +358,38 @@ public enum Varbits
 	MULTICOMBAT_AREA(4605),
 
 	/**
+	 * In the Wilderness
+	 */
+	IN_THE_WILDERNESS(5963),
+
+	/**
 	 * Kingdom Management
 	 */
 	KINGDOM_FAVOR(72),
 	KINGDOM_COFFER(74),
-	THRONE_OF_MISCELLANIA_QUEST(359),
+
+	/**
+	 * The Hand in the Sand quest status
+	 */
+	QUEST_THE_HAND_IN_THE_SAND(1527),
 
 	/**
 	 * Daily Tasks (Collection availability)
 	 */
-	DAILY_HERB_BOX(3961),
-	DAILY_STAVES(4539),
-	DAILY_ESSENCE(4547),
+	DAILY_HERB_BOXES_COLLECTED(3961),
+	DAILY_STAVES_COLLECTED(4539),
+	DAILY_ESSENCE_COLLECTED(4547),
+	DAILY_RUNES_COLLECTED(4540),
+	DAILY_SAND_COLLECTED(4549),
+	DAILY_ARROWS_STATE(4563),
+	DAILY_FLAX_STATE(4559),
+	/**
+	 * This varbit tracks how much bonemeal has been redeemed from Robin
+	 * The player gets 13 for each diary completed above and including Medium, for a maxiumum of 39
+	 */
+	DAILY_BONEMEAL_STATE(4543),
+
+	DAILY_DYNAMITE_COLLECTED(7939),
 
 	/**
 	 * Fairy Ring
@@ -319,6 +406,15 @@ public enum Varbits
 	FARMING_4772(4772),
 	FARMING_4773(4773),
 	FARMING_4774(4774),
+	FARMING_4775(4775),
+	FARMING_7904(7904),
+	FARMING_7905(7905),
+	FARMING_7906(7906),
+	FARMING_7907(7907),
+	FARMING_7908(7908),
+	FARMING_7909(7909),
+	FARMING_7910(7910),
+	FARMING_7911(7911),
 
 	/**
 	 * Transmog controllers for grapes
@@ -344,10 +440,212 @@ public enum Varbits
 	/**
 	 * The varbit that stores the players {@code AccountType}.
 	 */
-	ACCOUNT_TYPE(1777);
+	ACCOUNT_TYPE(1777),
 
 	/**
-	 * varbit id
+	 * Varbit used for Slayer reward points
+	 */
+	SLAYER_REWARD_POINTS(4068),
+
+	/**
+	 * The varbit that stores the oxygen percentage for player
+	 */
+	OXYGEN_LEVEL(5811),
+
+	/**
+	 * Corp beast damage
+	 */
+	CORP_DAMAGE(999),
+
+	/**
+	 * Toggleable slayer unlocks
+	 */
+	SUPERIOR_ENABLED(5362),
+	FOSSIL_ISLAND_WYVERN_DISABLE(6251),
+
+	CURRENT_BANK_TAB(4150),
+
+	WORLDHOPPER_FAVROITE_1(4597),
+	WORLDHOPPER_FAVROITE_2(4598),
+
+	/**
+	 * Vengeance is active
+	 */
+	VENGEANCE_ACTIVE(2450),
+
+	/**
+	 * Spell cooldowns
+	 */
+	VENGEANCE_COOLDOWN(2451),
+
+	/**
+	 * 0 = standard
+	 * 1 = ancients
+	 * 2 = lunars
+	 * 3 = arrceus
+	 **/
+	SPELLBOOK_ID(4070),
+
+	/**
+	 * 0 = no
+	 * 1 = yes
+	 **/
+	SPELLBOOK_HIDDEN(6718),
+
+	/**
+	 * Amount of items in each bank tab
+	 */
+	BANK_TAB_ONE_COUNT(4171),
+	BANK_TAB_TWO_COUNT(4172),
+	BANK_TAB_THREE_COUNT(4173),
+	BANK_TAB_FOUR_COUNT(4174),
+	BANK_TAB_FIVE_COUNT(4175),
+	BANK_TAB_SIX_COUNT(4176),
+	BANK_TAB_SEVEN_COUNT(4177),
+	BANK_TAB_EIGHT_COUNT(4178),
+	BANK_TAB_NINE_COUNT(4179),
+
+	/**
+	 * Type of GE offer currently being created
+	 * 0 = buy
+	 * 1 = sell
+	 */
+	GE_OFFER_CREATION_TYPE(4397),
+
+
+	/**
+	 * Spells being auto-casted
+	 */
+	AUTO_CAST_SPELL(276),
+
+
+	/**
+	 * The active tab within the quest interface
+	 */
+	QUEST_TAB(8168),
+
+	/**
+	 * Explorer ring
+	 */
+	EXPLORER_RING_ALCHTYPE(5398),
+	EXPLORER_RING_TELEPORTS(4552),
+	EXPLORER_RING_ALCHS(4554),
+	EXPLORER_RING_RUNENERGY(4553),
+
+	/**
+	 * Temple Trekking
+	 */
+	TREK_POINTS(1955),
+	TREK_STARTED(1956),
+	TREK_EVENT(1958),
+	TREK_STATUS(6719),
+	BLOAT_ENTERED_ROOM(6447),
+
+	/**
+	 * f2p Quest varbits, these don't hold the completion value.
+	 */
+	QUEST_DEMON_SLAYER(2561),
+	QUEST_GOBLIN_DIPLOMACY(2378),
+	QUEST_MISTHALIN_MYSTERY(3468),
+	QUEST_THE_CORSAIR_CURSE(6071),
+	QUEST_X_MARKS_THE_SPOT(8063),
+
+	/**
+	 * member Quest varbits, these don't hold the completion value.
+	 */
+	QUEST_ANIMAL_MAGNETISM(3185),
+	QUEST_BETWEEN_A_ROCK(299),
+	QUEST_CONTACT(3274),
+	QUEST_ZOGRE_FLESH_EATERS(487),
+	QUEST_DARKNESS_OF_HALLOWVALE(2573),
+	QUEST_DEATH_TO_THE_DORGESHUUN(2258),
+	QUEST_DESERT_TREASURE(358),
+	QUEST_DEVIOUS_MINDS(1465),
+	QUEST_EAGLES_PEAK(2780),
+	QUEST_ELEMENTAL_WORKSHOP_II(2639),
+	QUEST_ENAKHRAS_LAMENT(1560),
+	QUEST_ENLIGHTENED_JOURNEY(2866),
+	QUEST_THE_EYES_OF_GLOUPHRIE(2497),
+	QUEST_FAIRYTALE_I_GROWING_PAINS(1803),
+	QUEST_FAIRYTALE_II_CURE_A_QUEEN(2326),
+	QUEST_THE_FEUD(334), // 14 = able to pickpocket
+	QUEST_FORGETTABLE_TALE(822),
+	QUEST_GARDEN_OF_TRANQUILLITY(961),
+	QUEST_GHOSTS_AHOY(217),
+	QUEST_THE_GIANT_DWARF(571),
+	QUEST_THE_GOLEM(346),
+	QUEST_HORROR_FROM_THE_DEEP(34),
+	QUEST_ICTHLARINS_LITTLE_HELPER(418),
+	QUEST_IN_AID_OF_THE_MYREQUE(1990),
+	QUEST_THE_LOST_TRIBE(532),
+	QUEST_LUNAR_DIPLOMACY(2448),
+	QUEST_MAKING_HISTORY(1383),
+	QUEST_MOUNTAIN_DAUGHTER(260),
+	QUEST_MOURNINGS_ENDS_PART_II(1103),
+	QUEST_MY_ARMS_BIG_ADVENTURE(2790),
+	QUEST_RATCATCHERS(1404),
+	QUEST_RECIPE_FOR_DISASTER(1850),
+	QUEST_RECRUITMENT_DRIVE(657),
+	QUEST_ROYAL_TROUBLE(2140),
+	QUEST_THE_SLUG_MENACE(2610),
+	QUEST_SHADOW_OF_THE_STORM(1372),
+	QUEST_A_SOULS_BANE(2011),
+	QUEST_SPIRITS_OF_THE_ELID(1444),
+	QUEST_SWAN_SONG(2098),
+	QUEST_A_TAIL_OF_TWO_CATS(1028),
+	QUEST_TEARS_OF_GUTHIX(451),
+	QUEST_WANTED(1051),
+	QUEST_COLD_WAR(3293),
+	QUEST_THE_FREMENNIK_ISLES(3311),
+	QUEST_TOWER_OF_LIFE(3337),
+	QUEST_WHAT_LIES_BELOW(3523),
+	QUEST_OLAFS_QUEST(3534),
+	QUEST_ANOTHER_SLICE_OF_HAM(3550),
+	QUEST_DREAM_MENTOR(3618),
+	QUEST_GRIM_TALES(2783),
+	QUEST_KINGS_RANSOM(3888),
+	QUEST_MONKEY_MADNESS_II(5027),
+	QUEST_CLIENT_OF_KOUREND(5619),
+	QUEST_BONE_VOYAGE(5795),
+	QUEST_THE_QUEEN_OF_THIEVES(6037),
+	QUEST_THE_DEPTHS_OF_DESPAIR(6027),
+	QUEST_DRAGON_SLAYER_II(6104),
+	QUEST_TALE_OF_THE_RIGHTEOUS(6358),
+	QUEST_A_TASTE_OF_HOPE(6396),
+	QUEST_MAKING_FRIENDS_WITH_MY_ARM(6528),
+	QUEST_THE_ASCENT_OF_ARCEUUS(7856),
+	QUEST_THE_FORSAKEN_TOWER(7796),
+
+	/**
+	 * mini-quest varbits, these don't hold the completion value.
+	 */
+	QUEST_ARCHITECTURAL_ALLIANCE(4982),
+	QUEST_BEAR_YOUR_SOUL(5078),
+	QUEST_CURSE_OF_THE_EMPTY_LORD(821),
+	QUEST_ENCHANTED_KEY(1391),
+	QUEST_THE_GENERALS_SHADOW(3330),
+	QUEST_SKIPPY_AND_THE_MOGRES(1344),
+	QUEST_LAIR_OF_TARN_RAZORLOR(3290),
+	QUEST_FAMILY_PEST(5347),
+	QUEST_THE_MAGE_ARENA_II(6067),
+
+	/**
+	 * Active spellbook (see enumID)
+	 */
+	SPELLBOOK(4070),
+
+	/**
+	 * Spellbook filtering (1 = unfiltered, 0 = filtered)
+	 */
+	FILTER_SPELLBOOK(6718),
+
+	/**
+	 * POH Building mode (1 = yes, 0 = no)
+	 */
+	BUILDING_MODE(2176);
+
+	/**
+	 * The raw varbit ID.
 	 */
 	private final int id;
 }

@@ -28,18 +28,14 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup(
-	keyName = "idlenotifier",
-	name = "Idle Notifier",
-	description = "Configuration for the idle notifier plugin"
-)
+@ConfigGroup("idlenotifier")
 public interface IdleNotifierConfig extends Config
 {
 	@ConfigItem(
-		keyName = "animationidle",
-		name = "Idle Animation Notifications",
-		description = "Configures if idle animation notifications are enabled",
-		position = 1
+			keyName = "animationidle",
+			name = "Idle Animation Notifications",
+			description = "Configures if idle animation notifications are enabled",
+			position = 1
 	)
 	default boolean animationIdle()
 	{
@@ -47,21 +43,87 @@ public interface IdleNotifierConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "combatidle",
-		name = "Combat Idle Notifications",
-		description = "Configures if out of combat notifications are enabled",
-		position = 2
+			keyName = "animationidlesound",
+			name = "Idle Animation Sound",
+			description = "Plays a custom sound accompanying Idle Animation notifications",
+			position = 2
 	)
-	default boolean combatIdle()
+	default boolean animationIdleSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "interactionidle",
+			name = "Idle Interaction Notifications",
+			description = "Configures if idle interaction notifications are enabled e.g. combat, fishing",
+			position = 3
+	)
+	default boolean interactionIdle()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-		keyName = "timeout",
-		name = "Idle Notification Delay (ms)",
-		description = "The notification delay after the player is idle",
-		position = 3
+			keyName = "interactionidlesound",
+			name = "Idle Interaction Sound",
+			description = "Plays a custom sound accompanying Idle Interaction notifications",
+			position = 4
+	)
+	default boolean interactionIdleSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "logoutidle",
+			name = "Idle Logout Notifications",
+			description = "Configures if the idle logout notifications are enabled",
+			position = 5
+	)
+	default boolean logoutIdle()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "outofcombatsound",
+			name = "Out of Combat Sound",
+			description = "Plays a custom sound whenever you leave combat",
+			position = 6
+	)
+	default boolean outOfCombatSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			position = 7,
+			keyName = "skullNotification",
+			name = "Skull Notification",
+			description = "Receive a notification when you skull."
+	)
+	default boolean showSkullNotification()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			position = 8,
+			keyName = "unskullNotification",
+			name = "Unskull Notification",
+			description = "Receive a notification when you unskull."
+	)
+	default boolean showUnskullNotification()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "timeout",
+			name = "Idle Notification Delay (ms)",
+			description = "The notification delay after the player is idle",
+			position = 9
 	)
 	default int getIdleNotificationDelay()
 	{
@@ -69,10 +131,10 @@ public interface IdleNotifierConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "hitpoints",
-		name = "Hitpoints Notification Threshold",
-		description = "The amount of hitpoints to send a notification at. A value of 0 will disable notification.",
-		position = 4
+			keyName = "hitpoints",
+			name = "Hitpoints Notification Threshold",
+			description = "The amount of hitpoints to send a notification at. A value of 0 will disable notification.",
+			position = 10
 	)
 	default int getHitpointsThreshold()
 	{
@@ -80,13 +142,93 @@ public interface IdleNotifierConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "prayer",
-		name = "Prayer Notification Threshold",
-		description = "The amount of prayer points to send a notification at. A value of 0 will disable notification.",
-		position = 5
+			keyName = "playHealthSound",
+			name = "Play sound for Low Health",
+			description = "Will play a sound for every Low Health notification sent",
+			position = 12
+	)
+	default boolean getPlayHealthSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "prayer",
+			name = "Prayer Notification Threshold",
+			description = "The amount of prayer points to send a notification at. A value of 0 will disable notification.",
+			position = 12
 	)
 	default int getPrayerThreshold()
 	{
 		return 0;
 	}
+
+	@ConfigItem(
+			keyName = "playPrayerSound",
+			name = "Play sound for Low Prayer",
+			description = "Will play a sound for every Low Prayer notification sent",
+			position = 13
+	)
+	default boolean getPlayPrayerSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "oxygen",
+			name = "Oxygen Notification Threshold",
+			position = 14,
+			description = "The amount of remaining oxygen to send a notification at. A value of 0 will disable notification."
+	)
+	default int getOxygenThreshold()
+	{
+		return 0;
+	}
+
+	@ConfigItem(
+			keyName = "spec",
+			name = "Special Attack Energy Notification Threshold",
+			position = 15,
+			description = "The amount of spec energy reached to send a notification at. A value of 0 will disable notification."
+	)
+	default int getSpecEnergyThreshold()
+	{
+		return 0;
+	}
+
+	@ConfigItem(
+			keyName = "specSound",
+			name = "Special Attack Energy Sound",
+			description = "Plays a custom sound accompanying Special Attack energy notifications",
+			position = 16
+	)
+	default boolean getSpecSound() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "overspec",
+			name = "Over Special Energy Notification",
+			description = "Will repeat notifications for any value over the special energy threshold",
+			position = 17
+	)
+	default boolean getOverSpecEnergy() 
+	{
+		return false;
+	}
+
+	@ConfigItem(
+			keyName = "pkers",
+			name = "PKer Notifier",
+			position = 18,
+			description = "Notifies if an attackable player based on your level range appears on screen.",
+			group = "PvP",
+			warning = "This will not notify you if the player is in your cc or is online on your friends list."
+	)
+	default boolean notifyPkers()
+	{
+		return false;
+	}
+
 }

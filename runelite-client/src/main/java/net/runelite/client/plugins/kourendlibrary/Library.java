@@ -36,8 +36,32 @@ import javax.inject.Singleton;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.coords.WorldPoint;
-
-import static net.runelite.client.plugins.kourendlibrary.Book.*;
+import static net.runelite.client.plugins.kourendlibrary.Book.BYRNES_CORONATION_SPEECH;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13514;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13515;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13516;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13517;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13518;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13519;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13520;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13521;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13522;
+import static net.runelite.client.plugins.kourendlibrary.Book.DARK_MANUSCRIPT_13523;
+import static net.runelite.client.plugins.kourendlibrary.Book.EATHRAM_RADA_EXTRACT;
+import static net.runelite.client.plugins.kourendlibrary.Book.HOSIDIUS_LETTER;
+import static net.runelite.client.plugins.kourendlibrary.Book.IDEOLOGY_OF_DARKNESS;
+import static net.runelite.client.plugins.kourendlibrary.Book.KILLING_OF_A_KING;
+import static net.runelite.client.plugins.kourendlibrary.Book.RADAS_CENSUS;
+import static net.runelite.client.plugins.kourendlibrary.Book.RADAS_JOURNEY;
+import static net.runelite.client.plugins.kourendlibrary.Book.RICKTORS_DIARY_7;
+import static net.runelite.client.plugins.kourendlibrary.Book.SOUL_JOURNEY;
+import static net.runelite.client.plugins.kourendlibrary.Book.TRANSPORTATION_INCANTATIONS;
+import static net.runelite.client.plugins.kourendlibrary.Book.TRANSVERGENCE_THEORY;
+import static net.runelite.client.plugins.kourendlibrary.Book.TREACHERY_OF_ROYALTY;
+import static net.runelite.client.plugins.kourendlibrary.Book.TRISTESSAS_TRAGEDY;
+import static net.runelite.client.plugins.kourendlibrary.Book.TWILL_ACCORD;
+import static net.runelite.client.plugins.kourendlibrary.Book.VARLAMORE_ENVOY;
+import static net.runelite.client.plugins.kourendlibrary.Book.WINTERTODT_PARABLE;
 
 /**
  * Library represents a instance of the Kourend/Arceuus House library.
@@ -57,7 +81,7 @@ import static net.runelite.client.plugins.kourendlibrary.Book.*;
  */
 @Singleton
 @Slf4j
-public class Library
+class Library
 {
 	private final Map<WorldPoint, Bookcase> byPoint = new HashMap<>();
 	private final Map<Integer, ArrayList<Bookcase>> byLevel = new HashMap<>();
@@ -83,23 +107,23 @@ public class Library
 		reset();
 	}
 
-	public synchronized List<Bookcase> getBookcasesOnLevel(int z)
+	synchronized List<Bookcase> getBookcasesOnLevel(int z)
 	{
 		return Collections.unmodifiableList(byLevel.get(z));
 	}
 
-	public synchronized List<Bookcase> getBookcases()
+	synchronized List<Bookcase> getBookcases()
 	{
 		return Collections.unmodifiableList(byIndex);
 	}
 
-	public void setCustomer(LibraryCustomer customer, Book book)
+	void setCustomer(LibraryCustomer customer, Book book)
 	{
 		this.customer = customer;
 		this.customerBook = book;
 	}
 
-	public synchronized void reset()
+	synchronized void reset()
 	{
 		state = SolvedState.NO_DATA;
 		for (Bookcase b : byIndex)
@@ -110,7 +134,7 @@ public class Library
 		log.info("Library is now reset");
 	}
 
-	public synchronized void mark(WorldPoint loc, Book book)
+	synchronized void mark(WorldPoint loc, Book book)
 	{
 		Bookcase bookcase = byPoint.get(loc);
 		if (bookcase == null)
@@ -299,7 +323,7 @@ public class Library
 				DARK_MANUSCRIPT_13515,
 				BYRNES_CORONATION_SPEECH,
 				DARK_MANUSCRIPT_13517,
-				SOUL_JORUNEY,
+				SOUL_JOURNEY,
 				DARK_MANUSCRIPT_13518,
 				TRANSPORTATION_INCANTATIONS
 			),
@@ -322,7 +346,7 @@ public class Library
 				DARK_MANUSCRIPT_13514,
 				EATHRAM_RADA_EXTRACT,
 				DARK_MANUSCRIPT_13522,
-				SOUL_JORUNEY,
+				SOUL_JOURNEY,
 				WINTERTODT_PARABLE,
 				TWILL_ACCORD,
 				DARK_MANUSCRIPT_13515,
@@ -348,7 +372,7 @@ public class Library
 				DARK_MANUSCRIPT_13519,
 				BYRNES_CORONATION_SPEECH,
 				DARK_MANUSCRIPT_13517,
-				SOUL_JORUNEY,
+				SOUL_JOURNEY,
 				DARK_MANUSCRIPT_13522,
 				WINTERTODT_PARABLE,
 				TWILL_ACCORD,
@@ -384,7 +408,7 @@ public class Library
 				TREACHERY_OF_ROYALTY,
 				DARK_MANUSCRIPT_13518,
 				TRANSPORTATION_INCANTATIONS,
-				SOUL_JORUNEY,
+				SOUL_JOURNEY,
 				VARLAMORE_ENVOY
 			),
 			Arrays.asList(
@@ -409,7 +433,7 @@ public class Library
 				IDEOLOGY_OF_DARKNESS,
 				WINTERTODT_PARABLE,
 				TWILL_ACCORD,
-				SOUL_JORUNEY,
+				SOUL_JOURNEY,
 				DARK_MANUSCRIPT_13515,
 				EATHRAM_RADA_EXTRACT,
 				DARK_MANUSCRIPT_13518,

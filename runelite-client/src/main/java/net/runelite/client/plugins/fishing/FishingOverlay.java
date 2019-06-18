@@ -27,17 +27,19 @@ package net.runelite.client.plugins.fishing;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.time.Duration;
-import java.time.Instant;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
 import net.runelite.api.Skill;
 import net.runelite.client.plugins.xptracker.XpTrackerService;
 import net.runelite.client.ui.overlay.Overlay;
+import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
+import net.runelite.client.ui.overlay.OverlayMenuEntry;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
+import net.runelite.client.ui.overlay.components.table.TableAlignment;
+import net.runelite.client.ui.overlay.components.table.TableComponent;
 
 class FishingOverlay extends Overlay
 {
@@ -53,32 +55,19 @@ class FishingOverlay extends Overlay
 	@Inject
 	public FishingOverlay(Client client, FishingPlugin plugin, FishingConfig config, XpTrackerService xpTrackerService)
 	{
+		super(plugin);
 		setPosition(OverlayPosition.TOP_LEFT);
 		this.client = client;
 		this.plugin = plugin;
 		this.config = config;
 		this.xpTrackerService = xpTrackerService;
+		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Fishing overlay"));
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.showFishingStats())
-		{
-			return null;
-		}
-
-		FishingSession session = plugin.getSession();
-
-		if (session.getLastFishCaught() == null)
-		{
-			return null;
-		}
-
-		Duration statTimeout = Duration.ofMinutes(config.statTimeout());
-		Duration sinceCaught = Duration.between(session.getLastFishCaught(), Instant.now());
-
-		if (sinceCaught.compareTo(statTimeout) >= 0)
+		if (!config.showFishingStats() || plugin.getSession().getLastFishCaught() == null)
 		{
 			return null;
 		}
@@ -103,18 +92,17 @@ class FishingOverlay extends Overlay
 		int actions = xpTrackerService.getActions(Skill.FISHING);
 		if (actions > 0)
 		{
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Caught fish:")
-				.right(Integer.toString(actions))
-				.build());
+			TableComponent tableComponent = new TableComponent();
+			tableComponent.setColumnAlignments(TableAlignment.LEFT, TableAlignment.RIGHT);
+
+			tableComponent.addRow("Caught fish:", Integer.toString(actions));
 
 			if (actions > 2)
 			{
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left("Fish/hr:")
-					.right(Integer.toString(xpTrackerService.getActionsHr(Skill.FISHING)))
-					.build());
+				tableComponent.addRow("Fish/hr:", Integer.toString(xpTrackerService.getActionsHr(Skill.FISHING)));
 			}
+
+			panelComponent.getChildren().add(tableComponent);
 		}
 
 		return panelComponent.render(graphics);

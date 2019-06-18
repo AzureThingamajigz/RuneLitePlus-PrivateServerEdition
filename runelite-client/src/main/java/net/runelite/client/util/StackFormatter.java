@@ -24,8 +24,11 @@
  */
 package net.runelite.client.util;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,7 +51,23 @@ public class StackFormatter
 	/**
 	 * A number formatter
 	 */
-	private static final NumberFormat NUMBER_FORMATTER = NumberFormat.getInstance();
+	private static final NumberFormat NUMBER_FORMATTER = NumberFormat.getInstance(Locale.ENGLISH);
+
+	/**
+	 * A decimal number formatter
+	 */
+	private static final NumberFormat DECIMAL_FORMATTER = new DecimalFormat(
+		"#,###.#",
+		DecimalFormatSymbols.getInstance(Locale.ENGLISH)
+	);
+
+	/**
+	 * A more precise decimal number formatter, outputting thousandths
+	 */
+	private static final NumberFormat PRECISE_DECIMAL_FORMATTER = new DecimalFormat(
+		"#,###.###",
+		DecimalFormatSymbols.getInstance(Locale.ENGLISH)
+	);
 
 	/**
 	 * Convert a quantity to a nicely formatted stack size.
@@ -129,6 +148,54 @@ public class StackFormatter
 	}
 
 	/**
+	 * Convert a quantity to stack size as it would
+	 * appear in RuneScape. (with decimals)
+	 * <p>
+	 * This differs from quantityToRSStack in that it displays
+	 * decimals. Ex: 27100 is 27.1k (not 27k)
+	 * <p>
+	 *
+	 * @param quantity The quantity to convert.
+	 * @return The stack size as it would appear in RS, with decimals,
+	 * with K after 100,000 and M after 10,000,000
+	 */
+	public static String quantityToRSDecimalStack(int quantity)
+	{
+		return quantityToRSDecimalStack(quantity, false);
+	}
+
+	/**
+	 * Convert a quantity to stack size as it would
+	 * appear in RuneScape. (with decimals)
+	 * <p>
+	 * This differs from quantityToRSStack in that it displays
+	 * decimals. Ex: 27100 is 27.1k (not 27k)
+	 * <p>
+	 *
+	 * @param quantity The quantity to convert.
+	 * @param precise  If true, the returned string will have thousandths precision if quantity is larger than 1 million.
+	 * @return The stack size as it would appear in RS, with decimals,
+	 * with K after 100,000 and M after 10,000,000
+	 */
+	public static String quantityToRSDecimalStack(int quantity, boolean precise)
+	{
+		String quantityStr = String.valueOf(quantity);
+		if (quantityStr.length() <= 4)
+		{
+			return quantityStr;
+		}
+
+		int power = (int) Math.log10(quantity);
+
+		// Output thousandths for values above a million
+		NumberFormat format = precise && power >= 6
+			? PRECISE_DECIMAL_FORMATTER
+			: DECIMAL_FORMATTER;
+
+		return format.format(quantity / (Math.pow(10, (power / 3) * 3))) + SUFFIXES[power / 3];
+	}
+
+	/**
 	 * Converts a string representation of a stack
 	 * back to (close to) it's original value.
 	 *
@@ -147,8 +214,8 @@ public class StackFormatter
 	 *
 	 * @param number the long number to format
 	 * @return the formatted String
-	 * @exception        ArithmeticException if rounding is needed with rounding
-	 *                   mode being set to RoundingMode.UNNECESSARY
+	 * @throws ArithmeticException if rounding is needed with rounding
+	 *                             mode being set to RoundingMode.UNNECESSARY
 	 * @see java.text.Format#format
 	 */
 	public static String formatNumber(final long number)
@@ -161,8 +228,8 @@ public class StackFormatter
 	 *
 	 * @param number the double number to format
 	 * @return the formatted String
-	 * @exception        ArithmeticException if rounding is needed with rounding
-	 *                   mode being set to RoundingMode.UNNECESSARY
+	 * @throws ArithmeticException if rounding is needed with rounding
+	 *                             mode being set to RoundingMode.UNNECESSARY
 	 * @see java.text.Format#format
 	 */
 	public static String formatNumber(double number)

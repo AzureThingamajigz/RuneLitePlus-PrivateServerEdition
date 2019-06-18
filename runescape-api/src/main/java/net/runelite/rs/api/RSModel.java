@@ -24,69 +24,153 @@
  */
 package net.runelite.rs.api;
 
-import java.awt.Polygon;
 import net.runelite.api.Model;
+import java.awt.Polygon;
 import net.runelite.mapping.Import;
 
-public interface RSModel extends RSRenderable, Model
+public interface RSModel extends RSEntity, Model
 {
 	@Import("verticesCount")
+	@Override
 	int getVerticesCount();
 
 	@Import("verticesX")
+	@Override
 	int[] getVerticesX();
 
 	@Import("verticesY")
+	@Override
 	int[] getVerticesY();
 
 	@Import("verticesZ")
+	@Override
 	int[] getVerticesZ();
 
 	@Import("indicesCount")
+	@Override
 	int getTrianglesCount();
 
 	@Import("indices1")
+	@Override
 	int[] getTrianglesX();
 
 	@Import("indices2")
+	@Override
 	int[] getTrianglesY();
 
 	@Import("indices3")
+	@Override
 	int[] getTrianglesZ();
 
-	@Import("vertexGroups")
+	@Import("faceColors1")
+	@Override
+	int[] getFaceColors1();
+
+	@Import("faceColors2")
+	@Override
+	int[] getFaceColors2();
+
+	@Import("faceColors3")
+	@Override
+	int[] getFaceColors3();
+
+	@Import("faceAlphas")
+	@Override
+	byte[] getTriangleTransparencies();
+
+	@Import("faceRenderPriorities")
+	@Override
+	byte[] getFaceRenderPriorities();
+
+	@Import("vertexLabels")
 	int[][] getVertexGroups();
 
-	@Import("animate")
+	@Import("height")
+	@Override
+	int getModelHeight();
+
+	@Import("transform")
 	void animate(int type, int[] list, int x, int y, int z);
+
+	@Import("calculateBoundsCylinder")
+	@Override
+	void calculateBoundsCylinder();
+
+	@Import("calculateBoundingBox")
+	@Override
+	void calculateExtreme(int orientation);
 
 	@Import("resetBounds")
 	void resetBounds();
 
-	@Import("toSharedModel")
+	@Import("toSharedSequenceModel")
 	RSModel toSharedModel(boolean b);
 
-	@Import("toSharedSpotAnimModel")
+	@Import("toSharedSpotAnimationModel")
 	RSModel toSharedSpotAnimModel(boolean b);
 
 	@Import("rotateY90Ccw")
 	void rotateY90Ccw();
 
-	@Import("rotateY180Ccw")
+	@Import("rotateY180")
 	void rotateY180Ccw();
 
 	@Import("rotateY270Ccw")
 	void rotateY270Ccw();
 
-	void interpolateFrames(RSFrames frames, int frameId, RSFrames nextFrames, int nextFrameId, int interval,
-								int intervalCount);
+	@Import("isSingleTile")
+	boolean isSingleTile();
+
+	@Import("radius")
+	@Override
+	int getRadius();
+
+	@Import("xMid")
+	@Override
+	int getCenterX();
+
+	@Import("yMid")
+	@Override
+	int getCenterY();
+
+	@Import("zMid")
+	@Override
+	int getCenterZ();
+
+	@Import("xMidOffset")
+	@Override
+	int getExtremeX();
+
+	@Import("yMidOffset")
+	@Override
+	int getExtremeY();
+
+	@Import("zMidOffset")
+	@Override
+	int getExtremeZ();
+
+	@Import("faceTextures")
+	@Override
+	short[] getFaceTextures();
+
+	@Import("xzRadius")
+	@Override
+	int getXYZMag();
+
+	@Import("__du_bx")
+	@Override
+	boolean isClickable();
+
+	void interpolateFrames(RSFrames frames, int frameId, RSFrames nextFrames, int nextFrameId, int interval, int intervalCount);
 
 	/**
 	 * Compute the convex hull of this model
-	 * @param localX
-	 * @param localY
-	 * @param orientation
-	 * @return
 	 */
-	Polygon getConvexHull(int localX, int localY, int orientation);
+	Polygon getConvexHull(int localX, int localY, int orientation, int tileHeight);
+
+	float[][] getFaceTextureUCoordinates();
+	void setFaceTextureUCoordinates(float[][] rl$faceTextureUCoordinates);
+
+	float[][] getFaceTextureVCoordinates();
+	void setFaceTextureVCoordinates(float[][] rl$faceTextureVCoordinates);
 }
